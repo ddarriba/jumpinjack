@@ -1,0 +1,12 @@
+100 100 0 0
+100 100 0 0
+100 100 0 0
+100 100 0 0
+img/bg3.jpg 10 1  0
+img/bg2.png  2 1 10
+img/bg.png   1 0  0
+img/fg.png
+3
+img/enemies.png 8 0 2 ITEM_ENEMY {500,300} {0,0}
+img/enemies.png 8 0 2 ITEM_ENEMY {600,300} {0,0}
+img/enemies.png 8 0 2 ITEM_ENEMY {700,300} {0,0}
