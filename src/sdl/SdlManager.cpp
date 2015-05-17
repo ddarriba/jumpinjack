@@ -129,10 +129,10 @@ namespace jumpinjack
   {
     while (!events_queue.empty ())
       events_queue.pop ();
-    int x, y;
 
     const Uint8 *key_states = SDL_GetKeyboardState ( NULL);
-    const Uint32 mouse_state = SDL_GetMouseState (&x, &y);
+//    int x, y;
+//    const Uint32 mouse_state = SDL_GetMouseState (&x, &y);
 
     for (t_event_record & event : mapped_events)
       {

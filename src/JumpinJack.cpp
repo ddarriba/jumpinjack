@@ -13,6 +13,7 @@
 #include "sdl/SdlManager.h"
 
 using namespace jumpinjack;
+using namespace std;
 
 int main (
     void)
@@ -34,7 +35,7 @@ int main (
 
   manager.mapEvent(ETYPE_KEYBOARD, SDL_SCANCODE_LSHIFT, EVENT_SPRINT, TRIGGER_HOLD);
 
-  manager.addPlayer("img/player1.png", 12, 0, 1);
+  manager.addPlayer(GlobalDefs::getResource(RESOURCE_IMAGE,"player1.png"), 12, 0, 1);
 
   manager.startLevel(1);
 

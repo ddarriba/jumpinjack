@@ -19,11 +19,12 @@ namespace jumpinjack
                               std::vector<Player *> & players) :
           level_id (level_id), num_players (players.size ())
   {
-    stringstream level_data;
-    level_data << "data/level" << level_id << ".dat";
-    cout << level_data.str () << endl;
+    stringstream ss;
+    string level_data;
+    ss << "level" << level_id << ".dat";
+    level_data = GlobalDefs::getResource (RESOURCE_DATA, ss.str ().c_str ());
     string line;
-    ifstream myfile (level_data.str ());
+    ifstream myfile (level_data);
     assert(myfile.is_open ());
 
     items.reserve (MAX_LEVEL_ITEMS);
@@ -44,24 +45,29 @@ namespace jumpinjack
     for (int i = 0; i < PARALLAX_LAYERS; i++)
       {
         getline (myfile, line);
-        char bg_file[300];
+        char bg_file_cstr[300];
+        string bg_file;
         int parallax_level;
         int repeat_x;
         int auto_speed;
-        sscanf (line.c_str (), "%s %d %d %d", bg_file, &parallax_level,
+        sscanf (line.c_str (), "%s %d %d %d", bg_file_cstr, &parallax_level,
                 &repeat_x, &auto_speed);
+        bg_file = GlobalDefs::getResource (RESOURCE_IMAGE, bg_file_cstr);
         bg_layers.push_back (
             new BackgroundDrawable (renderer, bg_file, parallax_level,
                                     repeat_x == 1, auto_speed));
       }
 
     getline (myfile, line);
-    level_surface = new Surface (line);
+    level_surface = new Surface (
+        GlobalDefs::getResource (RESOURCE_IMAGE, line.c_str ()));
 
     items.push_back (
-      { new Enemy (renderer, "img/enemies.png", 8, 0, 2), ITEM_ENEMY,
-        { 500, 300 },
-        { 0, 0 } });
+          { new Enemy (renderer,
+                       GlobalDefs::getResource (RESOURCE_IMAGE, "enemies.png"),
+                       8, 0, 2), ITEM_ENEMY,
+            { 500, 300 },
+            { 0, 0 } });
 
     level_width = 4000;
     myfile.close ();

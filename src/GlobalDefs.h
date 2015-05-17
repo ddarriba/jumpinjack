@@ -106,6 +106,13 @@ typedef struct
 
 typedef t_point t_dim;
 
+typedef enum
+{
+    RESOURCE_IMAGE = 1,
+    RESOURCE_DATA = 2,
+    RESOURCE_SOUND = 3
+} t_resource;
+
 namespace jumpinjack
 {
 
@@ -120,6 +127,8 @@ namespace jumpinjack
       static int framerate;
 
       static int jump_sensitivity;
+
+      static std::string getResource (t_resource type, const char * file);
   };
 
 } /* namespace sdlfw */

@@ -36,7 +36,6 @@ namespace jumpinjack
   {
     unsetStatus (STATUS_LISTENING);
     setStatus (STATUS_DYING);
-    cout << "DESTROY" << endl;
   }
 
   t_collision Enemy::onCollision (Drawable * item, t_direction dir,
@@ -57,7 +56,7 @@ namespace jumpinjack
         return COLLISION_DIE;
         /* DIE */
       }
-    return (t_collision)collision_result;
+    return (t_collision) collision_result;
   }
 
   void Enemy::update (SDL_Point & next_point)
