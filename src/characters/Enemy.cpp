@@ -40,10 +40,11 @@ namespace jumpinjack
 
   t_collision Enemy::onCollision (Drawable * item, t_direction dir,
                                   t_itemtype type, t_point & point,
-                                  t_point & delta)
+                                  t_point & delta, t_point * otherpoint,
+                                  t_point * otherdelta)
   {
     int collision_result = COLLISION_IGNORE;
-    if (dir & DIRECTION_HORIZONTAL)
+    if ((dir & DIRECTION_HORIZONTAL) && type != ITEM_PLAYER)
       {
         if (direction == DIRECTION_RIGHT)
           direction = DIRECTION_LEFT;
@@ -51,7 +52,7 @@ namespace jumpinjack
           direction = DIRECTION_RIGHT;
         collision_result |= COLLISION_TURN;
       }
-    if ((dir & DIRECTION_DOWN) && type == ITEM_PLAYER)
+    if ((dir & DIRECTION_UP) && type == ITEM_PLAYER)
       {
         return COLLISION_DIE;
         /* DIE */

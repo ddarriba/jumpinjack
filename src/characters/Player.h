@@ -15,12 +15,13 @@ namespace jumpinjack
 
   typedef enum
   {
-    PLAYER_STAND = 0,
-    PLAYER_RUN = 1,
-    PLAYER_JUMP = 2,
-    PLAYER_FALL = 3,
-    PLAYER_CROUCH = 4,
-    PLAYER_DEAD = 5
+    PLAYER_STAND  = 0,
+    PLAYER_RUN    = 1,
+    PLAYER_JUMP   = 2,
+    PLAYER_FALL   = 3,
+    PLAYER_HIT    = 4,
+    PLAYER_CROUCH = 5,
+    PLAYER_DEAD   = 6
   } playerState;
 
   class Player : public ActiveDrawable
@@ -43,7 +44,9 @@ namespace jumpinjack
       virtual void onDestroy (void);
       virtual t_collision onCollision (Drawable * item, t_direction dir,
                                        t_itemtype type, t_point & point,
-                                       t_point & delta);
+                                       t_point & delta,
+                                       t_point * otherpoint = 0,
+                                       t_point * otherdelta = 0);
       virtual void update (SDL_Point & next_point);
 
       virtual void renderFixed (t_point point);

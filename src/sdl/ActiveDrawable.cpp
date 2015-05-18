@@ -12,19 +12,23 @@ using namespace std;
 namespace jumpinjack
 {
 
-  ActiveDrawable::ActiveDrawable (SDL_Renderer * renderer, std::string sprite_file, int sprite_length,
-      int sprite_start_line, int sprite_frequency) :
+  ActiveDrawable::ActiveDrawable (SDL_Renderer * renderer,
+                                  std::string sprite_file, int sprite_length,
+                                  int sprite_start_line, int sprite_frequency) :
           DrawableItem (renderer, 500), sprite_length (sprite_length),
           sprite_start_line (sprite_start_line),
           sprite_frequency (sprite_frequency), sprite_line (sprite_start_line),
-          sprite_index (0), counter (0), att_accel(DEFAULT_ACCEL), att_speed(DEFAULT_SPEED), att_jump(DEFAULT_JUMP)
+          sprite_index (0), counter (0), hit_counter (0),
+          att_accel (DEFAULT_ACCEL), att_speed (DEFAULT_SPEED),
+          att_jump (DEFAULT_JUMP)
   {
     direction = (t_direction) (DIRECTION_RIGHT | DIRECTION_HORIZONTAL);
 
-    loadFromFile(sprite_file);
+    loadFromFile (sprite_file);
 
     /* assuming square sprites */
-    sprite_size = {image_size.x / sprite_length, image_size.x / sprite_length};
+    sprite_size =
+      { image_size.x / sprite_length, image_size.x / sprite_length};
 
     onJump = 0;
   }
@@ -33,15 +37,15 @@ namespace jumpinjack
   {
   }
 
-  void ActiveDrawable::convertCoordinates( t_point & p)
+  void ActiveDrawable::convertCoordinates (t_point & p)
   {
     /* convert x,y in surface to the point where it should be drawn */
-    p.x -= sprite_size.x/2;
+    p.x -= sprite_size.x / 2;
     p.y -= sprite_size.y;
   }
 
   void ActiveDrawable::renderFixed (t_point point)
-    {
+  {
     counter = (counter + 1) % sprite_frequency;
     if (!counter)
       sprite_index = (sprite_index + 1) % sprite_length;

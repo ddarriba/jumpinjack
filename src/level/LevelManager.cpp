@@ -88,6 +88,10 @@ namespace jumpinjack
     assert(player_id < num_players);
     itemInfo & player_info = items[player_id];
     Player * player = (Player *) player_info.item;
+
+    if (!player->getStatus (STATUS_LISTENING))
+      return;
+
     bool run = false;
     int max_speed =
         (action & ACTION_SPRINT) ?
@@ -202,12 +206,17 @@ namespace jumpinjack
     else
       {
         t_direction hdir =
-            (it1.point.x < it2.point.x) ? DIRECTION_LEFT : DIRECTION_RIGHT;
+            (it1.point.x < it2.point.x) ? DIRECTION_RIGHT : DIRECTION_LEFT;
         *collision_direction = (t_direction) (DIRECTION_HORIZONTAL | hdir);
-        if (it1.point.y != it2.point.y)
+        if (it1.point.y < (it2.point.y - it2.item->getHeight () / 2))
           {
-            t_direction vdir =
-                (it1.point.y < it2.point.y) ? DIRECTION_UP : DIRECTION_DOWN;
+            t_direction vdir = DIRECTION_DOWN;
+            *collision_direction = (t_direction) (*collision_direction
+                | DIRECTION_VERTICAL | vdir);
+          }
+        else if (it2.point.y < (it1.point.y - it1.item->getHeight () / 2))
+          {
+            t_direction vdir = DIRECTION_UP;
             *collision_direction = (t_direction) (*collision_direction
                 | DIRECTION_VERTICAL | vdir);
           }
@@ -347,7 +356,7 @@ namespace jumpinjack
       {
         itemInfo & item1 = items[i];
         if (!item1.item->getStatus (STATUS_LISTENING))
-          continue;
+            continue;
         for (size_t j = i + 1; j < items.size (); j++)
           {
             itemInfo & item2 = items[j];
@@ -361,7 +370,8 @@ namespace jumpinjack
                     collision_result =
                         ((ActiveDrawable *) item1.item)->onCollision (
                             item2.item, collision_direction, item2.type,
-                            item1.point, item1.delta);
+                            item1.point, item1.delta, &item2.point,
+                            &item2.delta);
                     if (collision_result == COLLISION_DIE)
                       ((ActiveDrawable *) item1.item)->onDestroy ();
                   }
@@ -370,7 +380,8 @@ namespace jumpinjack
                     collision_result =
                         ((ActiveDrawable *) item2.item)->onCollision (
                             item1.item, reverseDirection (collision_direction),
-                            item1.type, item2.point, item2.delta);
+                            item1.type, item2.point, item2.delta, &item1.point,
+                            &item1.delta);
                     if (collision_result == COLLISION_DIE)
                       ((ActiveDrawable *) item2.item)->onDestroy ();
                   }

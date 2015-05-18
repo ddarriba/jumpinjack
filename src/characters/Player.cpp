@@ -40,20 +40,45 @@ namespace jumpinjack
 
   t_collision Player::onCollision (Drawable * item, t_direction dir,
                                    t_itemtype type, t_point & point,
-                                   t_point & delta)
+                                   t_point & delta, t_point * otherpoint,
+                                   t_point * otherdelta)
   {
-    if ((dir & DIRECTION_UP) && type == ITEM_ENEMY)
+    if (type == ITEM_ENEMY)
       {
-        /* jump */
-        if (delta.y < 0)
+        if (dir & DIRECTION_DOWN)
           {
-            delta.y -= att_jump / 2;
-            onJump = 1;
+            /* jump */
+            if (delta.y < 0)
+              {
+                delta.y -= att_jump / 2;
+                onJump = 1;
+              }
+            else
+              {
+                delta.y = -att_jump;
+                onJump = 1;
+              }
           }
         else
           {
-            delta.y = -att_jump;
-            onJump = 1;
+            if (!getStatus (STATUS_UNTOUCHABLE))
+              {
+                /* hit */
+                //delta.y = -15;
+                if (dir & DIRECTION_LEFT)
+                  {
+                    delta.x = 25;
+                  }
+                else
+                  {
+                    delta.x = -25;
+                  }
+                current_state = PLAYER_HIT;
+                unsetStatus (STATUS_LISTENING);
+                setStatus (STATUS_UNTOUCHABLE);
+                sprite_index = 0;
+                hit_counter = 0;
+              }
           }
       }
     return COLLISION_IGNORE;
@@ -61,17 +86,34 @@ namespace jumpinjack
 
   void Player::update (SDL_Point & next_point)
   {
-
+    if (current_state == PLAYER_HIT || hit_counter)
+      {
+        hit_counter++;
+        //*y += 10;
+        if (hit_counter >= sprite_length)
+          {
+            if (hit_counter == sprite_length)
+              {
+                setStatus (STATUS_LISTENING);
+                current_state = PLAYER_STAND;
+              }
+            else if (hit_counter >= 4 * sprite_length)
+              {
+                unsetStatus (STATUS_UNTOUCHABLE);
+                hit_counter = 0;
+              }
+          }
+      }
   }
 
   void Player::renderFixed (t_point point)
   {
-
     sprite_line = sprite_start_line + (int) current_state;
     if (current_state == PLAYER_JUMP)
       {
         sprite_index = min (sprite_index, sprite_length - 2);
       }
-    ActiveDrawable::renderFixed (point);
+    if (!getStatus(STATUS_UNTOUCHABLE) || !((hit_counter/3)%2))
+      ActiveDrawable::renderFixed (point);
   }
 } /* namespace sdlfw */
