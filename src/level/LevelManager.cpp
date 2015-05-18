@@ -275,7 +275,14 @@ namespace jumpinjack
                   {
                     it.point.y += inc;
                     if (dir == DIRECTION_DOWN)
-                      character->onJump = JUMPING_TRIGGER;
+                      {
+                        if (!character->onJump)
+                          character->onJump = JUMPING_TRIGGER;
+                        else if (character->onJump
+                            < GlobalDefs::jump_sensitivity)
+                          character->onJump = GlobalDefs::jump_sensitivity;
+                      }
+
                   }
                 else
                   {
