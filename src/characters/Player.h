@@ -49,7 +49,7 @@ namespace jumpinjack
                                        t_point * otherdelta = 0);
       virtual void update (SDL_Point & next_point);
 
-      virtual void renderFixed (t_point point);
+      virtual void renderFixed (t_point point, double angle = 0.0);
 
     private:
       playerState current_state;

@@ -12,8 +12,7 @@ using namespace std;
 namespace jumpinjack
 {
 
-  Drawable::Drawable (
-      SDL_Renderer * renderer, int zIndex, bool cached) :
+  Drawable::Drawable (SDL_Renderer * renderer, int zIndex, bool cached) :
           renderer (renderer), zIndex (zIndex), cached (cached)
   {
     mTexture = 0;
@@ -40,8 +39,7 @@ namespace jumpinjack
       }
   }
 
-  bool Drawable::loadFromFile (
-      std::string path)
+  bool Drawable::loadFromFile (std::string path)
   {
     //Get rid of preexisting texture
     free ();
@@ -97,30 +95,26 @@ namespace jumpinjack
     return mTexture != NULL;
   }
 
-  void Drawable::setColor (
-      Uint8 red, Uint8 green, Uint8 blue)
+  void Drawable::setColor (Uint8 red, Uint8 green, Uint8 blue)
   {
     //Modulate texture rgb
     SDL_SetTextureColorMod (mTexture, red, green, blue);
   }
 
-  void Drawable::setBlendMode (
-      SDL_BlendMode blending)
+  void Drawable::setBlendMode (SDL_BlendMode blending)
   {
     //Set blending function
     SDL_SetTextureBlendMode (mTexture, blending);
   }
 
-  void Drawable::setAlpha (
-      Uint8 alpha)
+  void Drawable::setAlpha (Uint8 alpha)
   {
     //Modulate texture alpha
     SDL_SetTextureAlphaMod (mTexture, alpha);
   }
 
-  void Drawable::render (
-      t_point point, t_dim size, SDL_Rect * clip, SDL_RendererFlip flip,
-      double angle, t_point * center)
+  void Drawable::render (t_point point, t_dim size, SDL_Rect * clip,
+                         SDL_RendererFlip flip, double angle, t_point * center)
   {
     //Set rendering space and render to screen
     SDL_Rect renderQuad =
@@ -140,8 +134,7 @@ namespace jumpinjack
 
   std::map<std::string, graphicInfo> Drawable::cachedSurfaces;
 
-  void Drawable::cleanCache (
-      void)
+  void Drawable::cleanCache (void)
   {
     for (map<string, graphicInfo>::iterator it = cachedSurfaces.begin ();
         it != cachedSurfaces.end (); ++it)

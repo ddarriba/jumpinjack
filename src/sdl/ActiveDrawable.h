@@ -43,7 +43,7 @@ namespace jumpinjack
                                        t_point * otherdelta = 0) = 0;
       virtual void update (SDL_Point & next_point) = 0;
 
-      virtual void renderFixed (t_point point);
+      virtual void renderFixed (t_point point, double angle = 0.0);
 
       int getAccel ()
       {
@@ -58,6 +58,10 @@ namespace jumpinjack
         return att_jump;
       }
 
+      t_direction getDirection ()
+      {
+        return direction;
+      }
       void setDirection (t_direction dir)
       {
         direction = dir;

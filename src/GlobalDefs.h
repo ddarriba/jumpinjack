@@ -25,6 +25,8 @@
 #define JUMPING_TRIGGER 100
 #define JUMPING_RESET     0
 
+#define PI 3.1415926
+
 typedef SDL_Point t_point;
 
 typedef enum
@@ -41,6 +43,7 @@ typedef enum
   EVENT_UP,
   EVENT_UP_RELEASE,
   EVENT_DOWN,
+  EVENT_SHOOT,
   EVENT_SPRINT,
   EVENT_EXIT
 } t_event;
@@ -60,7 +63,8 @@ typedef enum
   ACTION_UP     = 4,
   ACTION_UP_REL = 8,
   ACTION_DOWN   = 16,
-  ACTION_SPRINT = 32
+  ACTION_SHOOT  = 32,
+  ACTION_SPRINT = 64
 } t_action;
 
 typedef enum
@@ -84,6 +88,7 @@ typedef enum
 typedef enum
 {
   ITEM_PASSIVE,
+  ITEM_PROYECTILE,
   ITEM_PLAYER,
   ITEM_ENEMY
 } t_itemtype;

@@ -15,29 +15,38 @@
 using namespace jumpinjack;
 using namespace std;
 
-int main (
-    void)
+int main (void)
 {
   SdlManager manager;
-  manager.mapEvent(ETYPE_KEYBOARD, SDL_SCANCODE_ESCAPE, EVENT_EXIT, TRIGGER_UP);
+  manager.mapEvent (ETYPE_KEYBOARD, SDL_SCANCODE_ESCAPE, EVENT_EXIT,
+                    TRIGGER_UP);
 
-  manager.mapEvent(ETYPE_KEYBOARD, SDL_SCANCODE_LEFT, EVENT_LEFT, TRIGGER_HOLD);
-  manager.mapEvent(ETYPE_KEYBOARD, SDL_SCANCODE_RIGHT, EVENT_RIGHT, TRIGGER_HOLD);
-  manager.mapEvent(ETYPE_KEYBOARD, SDL_SCANCODE_UP, EVENT_UP, TRIGGER_HOLD);
-  manager.mapEvent(ETYPE_KEYBOARD, SDL_SCANCODE_UP, EVENT_UP_RELEASE, TRIGGER_UP);
-  manager.mapEvent(ETYPE_KEYBOARD, SDL_SCANCODE_DOWN, EVENT_DOWN, TRIGGER_HOLD);
+  manager.mapEvent (ETYPE_KEYBOARD, SDL_SCANCODE_LEFT, EVENT_LEFT,
+                    TRIGGER_HOLD);
+  manager.mapEvent (ETYPE_KEYBOARD, SDL_SCANCODE_RIGHT, EVENT_RIGHT,
+                    TRIGGER_HOLD);
+  manager.mapEvent (ETYPE_KEYBOARD, SDL_SCANCODE_UP, EVENT_UP, TRIGGER_HOLD);
+  manager.mapEvent (ETYPE_KEYBOARD, SDL_SCANCODE_UP, EVENT_UP_RELEASE,
+                    TRIGGER_UP);
+  manager.mapEvent (ETYPE_KEYBOARD, SDL_SCANCODE_DOWN, EVENT_DOWN,
+                    TRIGGER_HOLD);
 
-  manager.mapEvent(ETYPE_KEYBOARD, SDL_SCANCODE_A, EVENT_LEFT, TRIGGER_HOLD);
-  manager.mapEvent(ETYPE_KEYBOARD, SDL_SCANCODE_D, EVENT_RIGHT, TRIGGER_HOLD);
-  manager.mapEvent(ETYPE_KEYBOARD, SDL_SCANCODE_W, EVENT_UP, TRIGGER_HOLD);
-  manager.mapEvent(ETYPE_KEYBOARD, SDL_SCANCODE_W, EVENT_UP_RELEASE, TRIGGER_UP);
-  manager.mapEvent(ETYPE_KEYBOARD, SDL_SCANCODE_S, EVENT_DOWN, TRIGGER_HOLD);
+  manager.mapEvent (ETYPE_KEYBOARD, SDL_SCANCODE_A, EVENT_LEFT, TRIGGER_HOLD);
+  manager.mapEvent (ETYPE_KEYBOARD, SDL_SCANCODE_D, EVENT_RIGHT, TRIGGER_HOLD);
+  manager.mapEvent (ETYPE_KEYBOARD, SDL_SCANCODE_W, EVENT_UP, TRIGGER_HOLD);
+  manager.mapEvent (ETYPE_KEYBOARD, SDL_SCANCODE_W, EVENT_UP_RELEASE,
+                    TRIGGER_UP);
+  manager.mapEvent (ETYPE_KEYBOARD, SDL_SCANCODE_S, EVENT_DOWN, TRIGGER_HOLD);
 
-  manager.mapEvent(ETYPE_KEYBOARD, SDL_SCANCODE_LSHIFT, EVENT_SPRINT, TRIGGER_HOLD);
+  manager.mapEvent (ETYPE_KEYBOARD, SDL_SCANCODE_SPACE, EVENT_SHOOT,
+                    TRIGGER_DOWN);
+  manager.mapEvent (ETYPE_KEYBOARD, SDL_SCANCODE_LSHIFT, EVENT_SPRINT,
+                    TRIGGER_HOLD);
 
-  manager.addPlayer(GlobalDefs::getResource(RESOURCE_IMAGE,"player1.png"), 12, 0, 1);
+  manager.addPlayer (GlobalDefs::getResource (RESOURCE_IMAGE, "player1.png"),
+                     12, 0, 1);
 
-  manager.startLevel(1);
+  manager.startLevel (1);
 
   bool in_game = true;
   while (in_game)
@@ -71,6 +80,9 @@ int main (
             case EVENT_DOWN:
               next_action |= ACTION_DOWN;
               break;
+            case EVENT_SHOOT:
+              next_action |= ACTION_SHOOT;
+              break;
             case EVENT_SPRINT:
               next_action |= ACTION_SPRINT;
               break;
@@ -78,7 +90,7 @@ int main (
               break;
             }
         }
-      manager.applyAction((t_action) next_action);
+      manager.applyAction ((t_action) next_action);
 
       /* update */
       manager.update ();

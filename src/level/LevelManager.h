@@ -43,7 +43,9 @@ namespace jumpinjack
 
     private:
       void updatePosition (itemInfo & it);
-      bool canMove (t_point p, ActiveDrawable * character, t_direction dir);
+      bool canMoveTo (t_point p, ActiveDrawable * character, t_direction dir);
+
+      SDL_Renderer * renderer;
 
       int level_id;
       int level_width;

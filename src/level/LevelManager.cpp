@@ -7,6 +7,7 @@
 
 #include "LevelManager.h"
 #include "../characters/Enemy.h"
+#include "../items/Proyectile.h"
 #include <sstream>
 #include <fstream>
 
@@ -17,7 +18,8 @@ namespace jumpinjack
 
   LevelManager::LevelManager (SDL_Renderer * renderer, int level_id,
                               std::vector<Player *> & players) :
-          level_id (level_id), num_players (players.size ())
+          renderer (renderer), level_id (level_id),
+          num_players (players.size ())
   {
     stringstream ss;
     string level_data;
@@ -114,6 +116,22 @@ namespace jumpinjack
           player_info.delta.x = -max_speed;
         run = true;
       }
+    if (action & ACTION_SHOOT)
+      {
+        t_point point = player_info.point;
+        if (player->getDirection() == DIRECTION_RIGHT)
+          point.x += 50;
+        else
+          point.x -= 50;
+        t_point delta;
+        Proyectile * proyectile = new Proyectile (
+            renderer,
+            GlobalDefs::getResource (RESOURCE_IMAGE, "proyectile.png"),
+            player->getDirection (), delta, 60, 30);
+        itemInfo shoot_info =
+          { proyectile, ITEM_PROYECTILE, point, delta };
+        items.push_back (shoot_info);
+      }
     if (!run && !player_info.delta.x)
       player->setState (PLAYER_STAND);
     if (action & ACTION_UP)
@@ -149,8 +167,8 @@ namespace jumpinjack
       }
   }
 
-  bool LevelManager::canMove (t_point p, ActiveDrawable * character,
-                              t_direction dir)
+  bool LevelManager::canMoveTo (t_point p, ActiveDrawable * character,
+                                t_direction dir)
   {
     pixelType pixel;
     switch (dir & 0xF)
@@ -246,7 +264,7 @@ namespace jumpinjack
             t_direction dir = (inc > 0) ? DIRECTION_RIGHT : DIRECTION_LEFT;
             for (int i = 0; i < abs (it.delta.x); i++)
               {
-                if (canMove (it.point, character, dir))
+                if (canMoveTo (it.point, character, dir))
                   {
                     it.point.x += inc;
                   }
@@ -269,7 +287,7 @@ namespace jumpinjack
         /* move horizontal */
 
         /* gravity */
-        if (canMove (it.point, character, DIRECTION_DOWN))
+        if (canMoveTo (it.point, character, DIRECTION_DOWN))
           it.delta.y = min (GlobalDefs::max_falling_speed,
                             it.delta.y + gravity);
 
@@ -280,7 +298,7 @@ namespace jumpinjack
             t_direction dir = (inc > 0) ? DIRECTION_DOWN : DIRECTION_UP;
             for (int i = 0; i < abs (it.delta.y); i++)
               {
-                if (canMove (it.point, character, dir))
+                if (canMoveTo (it.point, character, dir))
                   {
                     it.point.y += inc;
                     if (dir == DIRECTION_DOWN)
@@ -302,7 +320,10 @@ namespace jumpinjack
                         else if (character->onJump)
                           character->onJump = (JUMPING_TRIGGER + 1);
                       }
-                    it.delta.y = 0;
+                    if (character->onCollision (
+                        0, (t_direction) (DIRECTION_VERTICAL | DIRECTION_DOWN),
+                        ITEM_PASSIVE, it.point, it.delta) == COLLISION_IGNORE)
+                      it.delta.y = 0;
                     break;
                   }
               }
@@ -356,7 +377,7 @@ namespace jumpinjack
       {
         itemInfo & item1 = items[i];
         if (!item1.item->getStatus (STATUS_LISTENING))
-            continue;
+          continue;
         for (size_t j = i + 1; j < items.size (); j++)
           {
             itemInfo & item2 = items[j];

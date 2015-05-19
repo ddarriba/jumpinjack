@@ -27,33 +27,32 @@ namespace jumpinjack
   class Drawable
   {
     public:
-      Drawable (
-          SDL_Renderer * renderer, int zIndex, bool cached = false);
+      Drawable (SDL_Renderer * renderer, int zIndex, bool cached = false);
       virtual
       ~Drawable ();
 
-      bool loadFromFile (
-          std::string path);
+      bool loadFromFile (std::string path);
 
-      virtual int getWidth ()  { return image_size.x; }
-      virtual int getHeight () { return image_size.y; }
+      virtual int getWidth ()
+      {
+        return image_size.x;
+      }
+      virtual int getHeight ()
+      {
+        return image_size.y;
+      }
 
-      void setColor (
-          Uint8 red, Uint8 green, Uint8 blue);
-      void setBlendMode (
-          SDL_BlendMode blending);
-      void setAlpha (
-          Uint8 alpha);
+      void setColor (Uint8 red, Uint8 green, Uint8 blue);
+      void setBlendMode (SDL_BlendMode blending);
+      void setAlpha (Uint8 alpha);
 
-      virtual void render (
-          t_point point, t_dim size, SDL_Rect * clip = NULL,
-          SDL_RendererFlip flip = SDL_FLIP_NONE, double angle = 0.0,
-          t_point * center = NULL);
-      virtual void renderFixed (
-               t_point point) = 0;
+      virtual void render (t_point point, t_dim size, SDL_Rect * clip = NULL,
+                           SDL_RendererFlip flip = SDL_FLIP_NONE, double angle =
+                               0.0,
+                           t_point * center = NULL);
+      virtual void renderFixed (t_point point, double angle = 0.0) = 0;
 
-      static void cleanCache (
-          void);
+      static void cleanCache (void);
 
     protected:
       SDL_Renderer * renderer;

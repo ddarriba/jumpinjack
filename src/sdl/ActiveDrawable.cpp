@@ -44,7 +44,7 @@ namespace jumpinjack
     p.y -= sprite_size.y;
   }
 
-  void ActiveDrawable::renderFixed (t_point point)
+  void ActiveDrawable::renderFixed (t_point point, double angle)
   {
     counter = (counter + 1) % sprite_frequency;
     if (!counter)
@@ -61,6 +61,6 @@ namespace jumpinjack
     SDL_RendererFlip flip =
         (direction & DIRECTION_RIGHT) ? SDL_FLIP_NONE : SDL_FLIP_HORIZONTAL;
 
-    render (point, sprite_size, &renderQuad, flip);
+    render (point, sprite_size, &renderQuad, flip, angle);
   }
 } /* namespace jumpinjack */
