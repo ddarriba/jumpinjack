@@ -1,5 +1,5 @@
 /*
- * Proyectile.h
+ * Projectile.h
  *
  *  Created on: May 19, 2015
  *      Author: diego

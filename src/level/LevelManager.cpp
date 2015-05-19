@@ -10,6 +10,7 @@
 #include <sstream>
 #include <fstream>
 #include "../items/Projectile.h"
+#include "../items/StaticAnimation.h"
 
 using namespace std;
 
@@ -124,12 +125,12 @@ namespace jumpinjack
         else
           point.x -= 50;
         t_point delta;
-        Projectile * proyectile = new Projectile (
+        Projectile * projectile = new Projectile (
             renderer,
-            GlobalDefs::getResource (RESOURCE_IMAGE, "proyectile.png"),
+            GlobalDefs::getResource (RESOURCE_IMAGE, "projectile.png"),
             player->getDirection (), delta, 60, 30);
         itemInfo shoot_info =
-          { proyectile, ITEM_PROYECTILE, point, delta };
+          { projectile, ITEM_PROJECTILE, point, delta };
         items.push_back (shoot_info);
       }
     if (!run && !player_info.delta.x)
@@ -247,7 +248,11 @@ namespace jumpinjack
     int friction = GlobalDefs::base_friction;
     int gravity = GlobalDefs::base_gravity;
 
-    if (it.type != ITEM_PASSIVE)
+    if (it.type == ITEM_PASSIVE)
+      {
+        it.item->update (it.delta);
+      }
+    else
       {
         ActiveDrawable * character = (ActiveDrawable *) it.item;
         character->update (it.delta);
@@ -397,6 +402,19 @@ namespace jumpinjack
                             &item2.delta);
                     if (collision_result == COLLISION_DIE)
                       ((ActiveDrawable *) item1.item)->onDestroy ();
+                    if (collision_result == COLLISION_EXPLODE)
+                      {
+                        StaticAnimation * explosion = new StaticAnimation (
+                            renderer,
+                            GlobalDefs::getResource (RESOURCE_IMAGE,
+                                                     "explosion.png"),
+                            11, 0, 2, LIFESPAN_ONE_LOOP, 0);
+                        itemInfo explosion_info =
+                          { explosion, ITEM_PASSIVE, item1.point,
+                            { 0, 0 } };
+                        items.push_back (explosion_info);
+                        ((ActiveDrawable *) item1.item)->onDestroy ();
+                      }
                   }
                 if (item2.type != ITEM_PASSIVE)
                   {
@@ -407,6 +425,19 @@ namespace jumpinjack
                             &item1.delta);
                     if (collision_result == COLLISION_DIE)
                       ((ActiveDrawable *) item2.item)->onDestroy ();
+                    if (collision_result == COLLISION_EXPLODE)
+                      {
+                        StaticAnimation * explosion = new StaticAnimation (
+                            renderer,
+                            GlobalDefs::getResource (RESOURCE_IMAGE,
+                                                     "explosion.png"),
+                            11, 0, 2, LIFESPAN_ONE_LOOP, 0);
+                        itemInfo explosion_info =
+                          { explosion, ITEM_PASSIVE, item2.point,
+                            { 0, 0 } };
+                        items.push_back (explosion_info);
+                        ((ActiveDrawable *) item2.item)->onDestroy ();
+                      }
                   }
               }
           }

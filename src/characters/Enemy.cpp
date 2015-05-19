@@ -53,7 +53,7 @@ namespace jumpinjack
         collision_result |= COLLISION_TURN;
       }
     if (((dir & DIRECTION_UP) && type == ITEM_PLAYER) ||
-        type == ITEM_PROYECTILE)
+        type == ITEM_PROJECTILE)
       {
         return COLLISION_DIE;
         /* DIE */

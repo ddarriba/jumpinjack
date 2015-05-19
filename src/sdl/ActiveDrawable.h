@@ -34,14 +34,11 @@ namespace jumpinjack
 
       void convertCoordinates (t_point & p);
 
-      virtual void onCreate (void) = 0;
-      virtual void onDestroy (void) = 0;
       virtual t_collision onCollision (Drawable * item, t_direction dir,
                                        t_itemtype type, t_point & point,
                                        t_point & delta,
                                        t_point * otherpoint = 0,
                                        t_point * otherdelta = 0) = 0;
-      virtual void update (SDL_Point & next_point) = 0;
 
       virtual void renderFixed (t_point point);
 
@@ -70,17 +67,8 @@ namespace jumpinjack
       int onJump;
     protected:
       t_direction direction;
-      t_dim sprite_size;
 
-      int sprite_length;
-      int sprite_start_line;
-      int sprite_frequency;
-
-      int sprite_line;
-      int sprite_index;
-      int counter;
       int hit_counter;
-
       int angle;
 
       /* attributes */

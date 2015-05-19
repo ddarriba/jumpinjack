@@ -1,5 +1,5 @@
 /*
- * Proyectile.cpp
+ * Projectile.cpp
  *
  *  Created on: May 19, 2015
  *      Author: diego
@@ -41,6 +41,7 @@ namespace jumpinjack
 
   void Projectile::onDestroy (void)
   {
+    /* switch sprite */
     unsetStatus (STATUS_LISTENING);
     setStatus (STATUS_DYING);
   }
@@ -59,7 +60,7 @@ namespace jumpinjack
 
     if (type != ITEM_PASSIVE)
       {
-        return COLLISION_DIE;
+        return COLLISION_EXPLODE;
       }
     else
       {

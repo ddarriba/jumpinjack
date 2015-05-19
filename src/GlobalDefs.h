@@ -88,7 +88,7 @@ typedef enum
 typedef enum
 {
   ITEM_PASSIVE,
-  ITEM_PROYECTILE,
+  ITEM_PROJECTILE,
   ITEM_PLAYER,
   ITEM_ENEMY
 } t_itemtype;
@@ -98,7 +98,8 @@ typedef enum
   COLLISION_IGNORE = 0,
   COLLISION_TURN = 1,
   COLLISION_HIT = 2,
-  COLLISION_DIE = 3
+  COLLISION_DIE = 3,
+  COLLISION_EXPLODE = 4
 } t_collision;
 
 typedef struct
