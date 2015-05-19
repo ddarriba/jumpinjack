@@ -27,7 +27,7 @@ namespace jumpinjack
   {
   }
 
-  void BackgroundDrawable::renderFixed (t_point point, double angle)
+  void BackgroundDrawable::renderFixed (t_point point)
   {
     if (auto_speed)
       {

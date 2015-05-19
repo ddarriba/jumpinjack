@@ -21,7 +21,7 @@ namespace jumpinjack
                           int auto_speed = 0);
       virtual ~BackgroundDrawable ();
 
-      void renderFixed (t_point point, double angle = 0.0);
+      void renderFixed (t_point point);
     private:
       int parallax_level;
       bool repeat_x;

@@ -7,9 +7,9 @@
 
 #include "LevelManager.h"
 #include "../characters/Enemy.h"
-#include "../items/Proyectile.h"
 #include <sstream>
 #include <fstream>
+#include "../items/Projectile.h"
 
 using namespace std;
 
@@ -119,12 +119,12 @@ namespace jumpinjack
     if (action & ACTION_SHOOT)
       {
         t_point point = player_info.point;
-        if (player->getDirection() == DIRECTION_RIGHT)
+        if (player->getDirection () == DIRECTION_RIGHT)
           point.x += 50;
         else
           point.x -= 50;
         t_point delta;
-        Proyectile * proyectile = new Proyectile (
+        Projectile * proyectile = new Projectile (
             renderer,
             GlobalDefs::getResource (RESOURCE_IMAGE, "proyectile.png"),
             player->getDirection (), delta, 60, 30);
@@ -259,7 +259,6 @@ namespace jumpinjack
               it.delta.x = max (it.delta.x - friction, 0);
             else
               it.delta.x = min (it.delta.x + friction, 0);
-
             int inc = sgn (it.delta.x);
             t_direction dir = (inc > 0) ? DIRECTION_RIGHT : DIRECTION_LEFT;
             for (int i = 0; i < abs (it.delta.x); i++)
@@ -270,9 +269,12 @@ namespace jumpinjack
                   }
                 else
                   {
-                    character->onCollision (0, DIRECTION_HORIZONTAL,
-                                            ITEM_PASSIVE, it.point, it.delta);
-                    it.delta.x = 0;
+                    if (character->onCollision (0, DIRECTION_HORIZONTAL,
+                                                ITEM_PASSIVE, it.point,
+                                                it.delta) != COLLISION_IGNORE)
+                      {
+                        it.delta.x = 0;
+                      }
                   }
               }
 
@@ -321,7 +323,7 @@ namespace jumpinjack
                           character->onJump = (JUMPING_TRIGGER + 1);
                       }
                     if (character->onCollision (
-                        0, (t_direction) (DIRECTION_VERTICAL | DIRECTION_DOWN),
+                        0, (t_direction) (DIRECTION_VERTICAL | dir),
                         ITEM_PASSIVE, it.point, it.delta) == COLLISION_IGNORE)
                       it.delta.y = 0;
                     break;

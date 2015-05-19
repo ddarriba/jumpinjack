@@ -5,21 +5,21 @@
  *      Author: diego
  */
 
-#ifndef ITEMS_PROYECTILE_H_
-#define ITEMS_PROYECTILE_H_
+#ifndef ITEMS_PROJECTILE_H_
+#define ITEMS_PROJECTILE_H_
 
 #include "../sdl/ActiveDrawable.h"
 
 namespace jumpinjack
 {
 
-  class Proyectile : public ActiveDrawable
+  class Projectile : public ActiveDrawable
   {
     public:
-      Proyectile (SDL_Renderer * renderer, std::string sprite_file,
-                  t_direction direction, t_point & delta, int angle, int power,
-                  int rotation_speed = 10);
-      virtual ~Proyectile ();
+      Projectile (SDL_Renderer * renderer, std::string sprite_file,
+                  t_direction direction, t_point & delta, int shooting_angle, int power,
+                  int rotation_speed = 10, int lifespan = 4000);
+      virtual ~Projectile ();
 
       virtual void onCreate (void);
       virtual void onDestroy (void);
@@ -31,11 +31,12 @@ namespace jumpinjack
       virtual void update (SDL_Point & next_point);
 
     private:
-      int angle;
-      int power;
-      int rotation_speed;
+      unsigned int start_ticks; /* starting time */
+      unsigned int lifespan;    /* time (millis) the projectile is alive */
+      int power;                /* shoot power (speed) */
+      int rotation_speed;       /* rotation speed */
   };
 
 } /* namespace jumpinjack */
 
-#endif /* ITEMS_PROYECTILE_H_ */
+#endif /* ITEMS_PROJECTILE_H_ */

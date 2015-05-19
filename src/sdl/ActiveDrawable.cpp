@@ -18,7 +18,7 @@ namespace jumpinjack
           DrawableItem (renderer, 500), sprite_length (sprite_length),
           sprite_start_line (sprite_start_line),
           sprite_frequency (sprite_frequency), sprite_line (sprite_start_line),
-          sprite_index (0), counter (0), hit_counter (0),
+          sprite_index (0), counter (0), hit_counter (0), angle(0),
           att_accel (DEFAULT_ACCEL), att_speed (DEFAULT_SPEED),
           att_jump (DEFAULT_JUMP)
   {
@@ -44,7 +44,7 @@ namespace jumpinjack
     p.y -= sprite_size.y;
   }
 
-  void ActiveDrawable::renderFixed (t_point point, double angle)
+  void ActiveDrawable::renderFixed (t_point point)
   {
     counter = (counter + 1) % sprite_frequency;
     if (!counter)

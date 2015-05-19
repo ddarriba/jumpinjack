@@ -106,7 +106,7 @@ namespace jumpinjack
       }
   }
 
-  void Player::renderFixed (t_point point, double angle)
+  void Player::renderFixed (t_point point)
   {
     sprite_line = sprite_start_line + (int) current_state;
     if (current_state == PLAYER_JUMP)

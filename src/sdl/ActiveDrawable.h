@@ -43,7 +43,7 @@ namespace jumpinjack
                                        t_point * otherdelta = 0) = 0;
       virtual void update (SDL_Point & next_point) = 0;
 
-      virtual void renderFixed (t_point point, double angle = 0.0);
+      virtual void renderFixed (t_point point);
 
       int getAccel ()
       {
@@ -80,6 +80,8 @@ namespace jumpinjack
       int sprite_index;
       int counter;
       int hit_counter;
+
+      int angle;
 
       /* attributes */
       int att_accel;

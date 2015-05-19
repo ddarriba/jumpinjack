@@ -50,7 +50,7 @@ namespace jumpinjack
                            SDL_RendererFlip flip = SDL_FLIP_NONE, double angle =
                                0.0,
                            t_point * center = NULL);
-      virtual void renderFixed (t_point point, double angle = 0.0) = 0;
+      virtual void renderFixed (t_point point) = 0;
 
       static void cleanCache (void);
 
