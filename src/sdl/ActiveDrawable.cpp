@@ -36,11 +36,14 @@ namespace jumpinjack
     p.y -= sprite_size.y;
   }
 
+  void ActiveDrawable::update (SDL_Point & next_point)
+    {
+      renderQuad = updateSprite();
+    }
+
   void ActiveDrawable::renderFixed (t_point point)
   {
     convertCoordinates (point);
-
-    SDL_Rect renderQuad = updateSprite();
 
     SDL_RendererFlip flip =
         (direction & DIRECTION_RIGHT) ? SDL_FLIP_NONE : SDL_FLIP_HORIZONTAL;

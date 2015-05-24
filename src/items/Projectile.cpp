@@ -113,6 +113,8 @@ namespace jumpinjack
       {
         setStatus (STATUS_DYING);
       }
+
+    ActiveDrawable::update(next_point);
   }
 
 } /* namespace jumpinjack */

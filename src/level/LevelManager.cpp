@@ -71,7 +71,42 @@ namespace jumpinjack
                        8, 0, 2), ITEM_ENEMY,
             { 500, 300 },
             { 0, 0 } });
-
+    items.push_back (
+          { new Enemy (renderer,
+                       GlobalDefs::getResource (RESOURCE_IMAGE, "enemies.png"),
+                       8, 0, 2), ITEM_ENEMY,
+            { 800, 300 },
+            { 0, 0 } });
+    items.push_back (
+          { new Enemy (renderer,
+                       GlobalDefs::getResource (RESOURCE_IMAGE, "enemies.png"),
+                       8, 0, 2), ITEM_ENEMY,
+            { 1000, 300 },
+            { 0, 0 } });
+    items.push_back (
+          { new Enemy (renderer,
+                       GlobalDefs::getResource (RESOURCE_IMAGE, "enemies.png"),
+                       8, 0, 2), ITEM_ENEMY,
+            { 1200, 300 },
+            { 0, 0 } });
+    items.push_back (
+          { new Enemy (renderer,
+                       GlobalDefs::getResource (RESOURCE_IMAGE, "enemies.png"),
+                       8, 0, 2), ITEM_ENEMY,
+            { 2700, 300 },
+            { 0, 0 } });
+    items.push_back (
+          { new Enemy (renderer,
+                       GlobalDefs::getResource (RESOURCE_IMAGE, "enemies.png"),
+                       8, 0, 2), ITEM_ENEMY,
+            { 2900, 300 },
+            { 0, 0 } });
+    items.push_back (
+          { new Enemy (renderer,
+                       GlobalDefs::getResource (RESOURCE_IMAGE, "enemies.png"),
+                       8, 0, 2), ITEM_ENEMY,
+            { 3500, 300 },
+            { 0, 0 } });
     level_width = 4000;
     myfile.close ();
   }

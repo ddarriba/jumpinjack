@@ -19,7 +19,7 @@ namespace jumpinjack
           Drawable (renderer, 0, false), parallax_level (parallax_level),
           repeat_x (repeat_x), auto_speed (auto_speed)
   {
-    loadFromFile (imgfile);
+    assert(loadFromFile (imgfile));
     counter = 0;
   }
 

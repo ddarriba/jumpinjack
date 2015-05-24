@@ -104,15 +104,17 @@ namespace jumpinjack
               }
           }
       }
-  }
 
-  void Player::renderFixed (t_point point)
-  {
     sprite_line = sprite_start_line + (int) current_state;
     if (current_state == PLAYER_JUMP)
       {
         sprite_index = min (sprite_index, sprite_length - 2);
       }
+    ActiveDrawable::update(next_point);
+  }
+
+  void Player::renderFixed (t_point point)
+  {
     if (!getStatus(STATUS_UNTOUCHABLE) || !((hit_counter/3)%2))
       ActiveDrawable::renderFixed (point);
   }

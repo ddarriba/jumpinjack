@@ -11,8 +11,10 @@
 #include "../GlobalDefs.h"
 #include "../characters/Player.h"
 #include "../level/LevelManager.h"
+#include "../level/InGameMenu.h"
 
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
 
 #include <vector>
 #include <queue>
@@ -22,6 +24,11 @@ struct queued_event
 {
     t_event user_event;
     t_point point;
+};
+
+enum menu_option {
+  MENU_OPTION_CONTINUE,
+  MENU_OPTION_EXIT
 };
 
 namespace jumpinjack
@@ -46,17 +53,21 @@ namespace jumpinjack
 
       void applyAction (t_action action);
 
+      menu_option showmenu(TTF_Font* font);
+
       void startLoop ();
       void endLoop ();
 
-      void update ();
+      void update (bool game_paused = false);
 
-      void render ();
+      void render (bool render_menu = false);
     private:
       bool init();
 
       SDL_Window * window;
       SDL_Renderer * renderer;
+
+      SDL_Surface * menu_screen;
 
       Uint32 start_ticks;
 
@@ -65,6 +76,7 @@ namespace jumpinjack
 
       std::vector<Player *> players;
       LevelManager * level;
+      InGameMenu * ingame_menu;
   };
 
 } /* namespace sdlfw */

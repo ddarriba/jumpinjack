@@ -79,6 +79,8 @@ namespace jumpinjack
         else
           next_point.x = -att_speed;
       }
+
+    ActiveDrawable::update(next_point);
   }
 
 } /* namespace jumpinjack */

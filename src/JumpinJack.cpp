@@ -18,8 +18,8 @@ using namespace std;
 int main (void)
 {
   SdlManager manager;
-  manager.mapEvent (ETYPE_KEYBOARD, SDL_SCANCODE_ESCAPE, EVENT_EXIT,
-                    TRIGGER_UP);
+  manager.mapEvent (ETYPE_KEYBOARD, SDL_SCANCODE_ESCAPE, EVENT_MENU_LOAD,
+                    TRIGGER_DOWN);
 
   manager.mapEvent (ETYPE_KEYBOARD, SDL_SCANCODE_LEFT, EVENT_LEFT,
                     TRIGGER_HOLD);
@@ -49,13 +49,35 @@ int main (void)
   manager.startLevel (1);
 
   bool in_game = true;
+
+  if (TTF_Init () == -1)
+    {
+      printf ("SDL_ttf could not initialize! SDL_ttf Error: %s\n",
+      TTF_GetError ());
+    }
+
+  TTF_Font * font = TTF_OpenFont ("Test.ttf", 30);
+  if (font == NULL)
+    {
+      printf ("Failed to load lazy font! SDL_ttf Error: %s\n", TTF_GetError ());
+    }
+
+  int i = manager.showmenu (font);
+  if (i == 1)
+    in_game = false;
+
+  bool game_paused = false;
   while (in_game)
     {
       manager.startLoop ();
 
       int event;
       int next_action = ACTION_NONE;
-      manager.pollEvents ();
+
+      if (!game_paused)
+        {
+          manager.pollEvents ();
+        }
 
       t_point point;
       while ((event = manager.pollSingleEvent (&point)) != EVENT_NONE)
@@ -64,6 +86,12 @@ int main (void)
             {
             case EVENT_EXIT:
               in_game = false;
+              break;
+            case EVENT_MENU_LOAD:
+              game_paused = true;
+              break;
+            case EVENT_MENU_UNLOAD:
+              game_paused = false;
               break;
             case EVENT_LEFT:
               next_action |= ACTION_LEFT;
@@ -93,10 +121,10 @@ int main (void)
       manager.applyAction ((t_action) next_action);
 
       /* update */
-      manager.update ();
+      manager.update (game_paused);
 
       /* render */
-      manager.render ();
+      manager.render (game_paused);
 
       manager.endLoop ();
     }

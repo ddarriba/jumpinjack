@@ -42,6 +42,8 @@ namespace jumpinjack
 
       virtual void renderFixed (t_point point);
 
+      virtual void update (SDL_Point & next_point);
+
       int getAccel ()
       {
         return att_accel;
@@ -66,6 +68,8 @@ namespace jumpinjack
 
       int onJump;
     protected:
+      SDL_Rect renderQuad;
+
       t_direction direction;
 
       int hit_counter;

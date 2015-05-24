@@ -43,6 +43,9 @@ namespace jumpinjack
       case RESOURCE_SOUND:
         ss << "/sound/";
         break;
+      case RESOURCE_FONT:
+        ss << "/fonts/";
+        break;
       }
     ss << file;
     return ss.str ();

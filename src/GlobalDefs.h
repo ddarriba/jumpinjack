@@ -38,6 +38,8 @@ typedef enum
 typedef enum
 {
   EVENT_NONE,
+  EVENT_MENU_LOAD,
+  EVENT_MENU_UNLOAD,
   EVENT_LEFT,
   EVENT_RIGHT,
   EVENT_UP,
@@ -117,7 +119,8 @@ typedef enum
 {
     RESOURCE_IMAGE = 1,
     RESOURCE_DATA = 2,
-    RESOURCE_SOUND = 3
+    RESOURCE_SOUND = 3,
+    RESOURCE_FONT = 4
 } t_resource;
 
 namespace jumpinjack

@@ -31,6 +31,8 @@ namespace jumpinjack
 
       unsigned int start_time;
       unsigned int lifespan;    /* millis */
+
+      SDL_Rect renderQuad;
   };
 
 } /* namespace jumpinjack */

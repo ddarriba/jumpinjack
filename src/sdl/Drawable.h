@@ -12,6 +12,7 @@
 #include <map>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
 
 #include "../GlobalDefs.h"
 
@@ -32,6 +33,7 @@ namespace jumpinjack
       ~Drawable ();
 
       bool loadFromFile (std::string path);
+      bool loadFromRenderedText( std::string textureText, SDL_Color textColor );
 
       virtual int getWidth ()
       {
@@ -50,7 +52,7 @@ namespace jumpinjack
                            SDL_RendererFlip flip = SDL_FLIP_NONE, double angle =
                                0.0,
                            t_point * center = NULL);
-      virtual void renderFixed (t_point point) = 0;
+      virtual void renderFixed (t_point point) {};
 
       static void cleanCache (void);
 

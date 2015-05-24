@@ -52,9 +52,6 @@ namespace jumpinjack
 
     int pixel = getPixel (p);
 
-//    if (pixel)
-//      cout << dec << p.x << " " << p.y << " " << hex << pixel << dec << endl;
-
     /* Get Red component */
     blue = pixel & 0xFF0000;
     blue = blue >> 16;

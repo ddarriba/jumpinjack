@@ -20,6 +20,7 @@ namespace jumpinjack
     mapped_events.reserve (MAX_EVENTS);
     players.reserve(MAX_PLAYERS);
     level = NULL;
+    ingame_menu = NULL;
   }
 
   SdlManager::~SdlManager ()
@@ -96,6 +97,17 @@ namespace jumpinjack
               }
           }
       }
+
+    if (TTF_Init () == -1)
+      {
+        printf ("SDL_ttf could not initialize! SDL_ttf Error: %s\n",
+        TTF_GetError ());
+        success = false;
+      }
+
+    menu_screen = IMG_Load("data/img/bg.png");
+    assert (menu_screen);
+
     return success;
   }
 
@@ -115,6 +127,7 @@ namespace jumpinjack
     assert (!level);
 
     level = new LevelManager(renderer, level_id, players);
+    ingame_menu = new InGameMenu(renderer);
     return 0;
   }
 
@@ -208,6 +221,120 @@ namespace jumpinjack
     level->applyAction(0, action);
   }
 
+  menu_option SdlManager::showmenu (TTF_Font* font)
+  {
+    Uint32 time;
+    int x, y;
+    const int NUMMENU = 3;
+    const char* labels[NUMMENU] =
+        { "Continue",
+          "Change Controls",
+          "Exit" };
+    menu_option return_val = MENU_OPTION_CONTINUE;
+    const menu_option returnval_array[NUMMENU] =
+          { MENU_OPTION_CONTINUE,
+            MENU_OPTION_CONTINUE,
+            MENU_OPTION_EXIT };
+    Drawable * menus[NUMMENU];
+    bool selected[NUMMENU] =
+      { 0, 0 };
+    SDL_Color color[2] =
+      {
+        { 0, 0, 0 },
+        { 255, 0, 0 } };
+    SDL_Rect pos[NUMMENU];
+        int yMenuOffset = 100;
+
+    for (int i = 0; i < NUMMENU; i++)
+      {
+        menus[i] = new Drawable (renderer, i, false);
+        menus[i]->loadFromRenderedText (labels[i], color[0]);
+        pos[i].x = GlobalDefs::window_size.x / 2 - menus[i]->getWidth () / 2;
+        pos[i].y = yMenuOffset;
+        pos[i].w = menus[i]->getWidth ();
+        pos[i].h = menus[i]->getHeight ();
+        yMenuOffset += pos[i].h;
+      }
+
+    SDL_Event event;
+    int in_loop = true;
+    while (in_loop)
+      {
+        time = SDL_GetTicks ();
+        while (SDL_PollEvent (&event))
+          {
+            switch (event.type)
+              {
+              case SDL_QUIT:
+                return_val = MENU_OPTION_EXIT;
+                in_loop = false;
+                break;
+              case SDL_MOUSEMOTION:
+                x = event.motion.x;
+                y = event.motion.y;
+                for (int i = 0; i < NUMMENU; i += 1)
+                  {
+                    if (x >= pos[i].x && x <= pos[i].x + pos[i].w
+                        && y >= pos[i].y && y <= pos[i].y + pos[i].h)
+                      {
+                        if (!selected[i])
+                          {
+                            selected[i] = 1;
+                            menus[i]->loadFromRenderedText(labels[i], color[1]);
+                          }
+                      }
+                    else
+                      {
+                        if (selected[i])
+                          {
+                            selected[i] = 0;
+                            menus[i]->loadFromRenderedText(labels[i], color[0]);
+                          }
+                      }
+                  }
+                break;
+              case SDL_MOUSEBUTTONDOWN:
+                x = event.button.x;
+                y = event.button.y;
+                for (int i = 0; i < NUMMENU; i += 1)
+                  {
+                    if (x >= pos[i].x && x <= pos[i].x + pos[i].w
+                        && y >= pos[i].y && y <= pos[i].y + pos[i].h)
+                      {
+                        return_val = returnval_array[i];
+                        in_loop = false;
+                      }
+                  }
+                break;
+              case SDL_KEYDOWN:
+                if (event.key.keysym.sym == SDLK_y)
+                  {
+                    return_val = MENU_OPTION_CONTINUE;
+                    in_loop = false;
+                  }
+                break;
+              }
+          }
+        SDL_RenderClear (renderer);
+//        gTextTexture.render ((SCREEN_WIDTH - gTextTexture.getWidth ()) / 2,
+//                             (SCREEN_HEIGHT - gTextTexture.getHeight ()) / 2);
+
+        for (int i = 0; i < NUMMENU; i += 1)
+          {
+            menus[i]->render ({(GlobalDefs::window_size.x - menus[i]->getWidth ()) / 2, pos[i].y},{menus[i]->getWidth (),
+                              menus[i]->getHeight ()});
+          }
+        SDL_RenderPresent (renderer);
+        //SDL_Flip(screen);
+        if (1000 / 30 > (SDL_GetTicks () - time))
+          SDL_Delay (1000 / 30 - (SDL_GetTicks () - time));
+      }
+
+    for (int j = 0; j < NUMMENU; j++)
+                          delete (menus[j]);
+    return return_val;
+  }
+
   void SdlManager::startLoop ()
   {
     start_ticks = SDL_GetTicks ();
@@ -226,12 +353,36 @@ namespace jumpinjack
       }
   }
 
-  void SdlManager::update ()
+  void SdlManager::update (bool game_paused)
   {
-    level->update();
+    if (game_paused)
+      {
+        switch(ingame_menu->poll())
+        {
+          case MENU_CONTINUE:
+            events_queue.push (
+              { EVENT_MENU_UNLOAD,
+                { 0, 0 } });
+            break;
+          case MENU_EXIT:
+            events_queue.push (
+              { EVENT_EXIT,
+                { 0, 0 } });
+            break;
+          case MENU_SET_CONTROLS:
+          case MENU_MAIN:
+          case MENU_NONE:
+            /* ignore */
+            break;
+          }
+      }
+    else
+      {
+        level->update ();
+      }
   }
 
-  void SdlManager::render ()
+  void SdlManager::render (bool render_menu)
   {
     assert(level);
 
@@ -239,13 +390,14 @@ namespace jumpinjack
     SDL_SetRenderDrawColor (renderer, 0xFF, 0xFF, 0xFF, 0xFF);
     SDL_RenderClear (renderer);
 
-    level->render();
-//    for (BackgroundLayer * bg : bgs)
-//      {
-//        bg->renderBg (0, 0, window_width, window_height);
-//      }
-//
-//    level->render (0, 0);
+    level->render ();
+
+    if (render_menu)
+      {
+        assert(ingame_menu);
+        ingame_menu->renderFixed (
+          { 0, 0 });
+      }
 
     /* Update screen */
     SDL_RenderPresent (renderer);
