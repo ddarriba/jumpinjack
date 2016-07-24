@@ -23,6 +23,8 @@ namespace jumpinjack
     direction = (t_direction) (DIRECTION_RIGHT | DIRECTION_HORIZONTAL);
 
     onJump = 0;
+    jumpId = 0;
+    n_jumps = 2;
   }
 
   ActiveDrawable::~ActiveDrawable ()
@@ -49,5 +51,29 @@ namespace jumpinjack
         (direction & DIRECTION_RIGHT) ? SDL_FLIP_NONE : SDL_FLIP_HORIZONTAL;
 
     render (point, sprite_size, &renderQuad, flip, angle);
+  }
+
+  int ActiveDrawable::getAccel() const {
+	return att_accel;
+  }
+
+  int ActiveDrawable::getSpeed() const {
+	return att_speed;
+  }
+
+  int ActiveDrawable::getJump() const {
+	return att_jump;
+  }
+
+  t_direction ActiveDrawable::getDirection() const {
+	return direction;
+  }
+
+  void ActiveDrawable::setDirection(t_direction dir) {
+	direction = dir;
+  }
+
+  int ActiveDrawable::multipleJump(void) const {
+	return n_jumps;
   }
 } /* namespace jumpinjack */

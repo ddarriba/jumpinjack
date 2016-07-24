@@ -44,7 +44,7 @@ int main (void)
                     TRIGGER_HOLD);
 
   manager.addPlayer (GlobalDefs::getResource (RESOURCE_IMAGE, "player1.png"),
-                     12, 0, 1);
+                     3, 0, 3);
 
   manager.startLevel (1);
 
@@ -56,7 +56,7 @@ int main (void)
       TTF_GetError ());
     }
 
-  TTF_Font * font = TTF_OpenFont ("Test.ttf", 30);
+  TTF_Font * font = TTF_OpenFont ("data/fonts/zorque.ttf", 30);
   if (font == NULL)
     {
       printf ("Failed to load lazy font! SDL_ttf Error: %s\n", TTF_GetError ());

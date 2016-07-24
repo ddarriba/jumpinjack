@@ -39,6 +39,7 @@ namespace jumpinjack
                 &delta.x, &delta.y);
         items.push_back (
           { player, ITEM_PLAYER, position, delta });
+        checkpoint = position;
       }
 
     for (int i = num_players; i < MAX_PLAYERS; i++)
@@ -171,68 +172,84 @@ namespace jumpinjack
     if (!run && !player_info.delta.x)
       player->setState (PLAYER_STAND);
     if (action & ACTION_UP)
+    {
+      if (player->onJump < GlobalDefs::jump_sensitivity)
       {
-        if (player->onJump < GlobalDefs::jump_sensitivity)
-          {
-            /* ignore gravity when jumping */
-            player_info.delta.y -= GlobalDefs::base_gravity;
-            int jump_power = player->getJump () + abs (player_info.delta.x) / 5;
-            if (!player->onJump)
-              {
-                player_info.delta.y -= jump_power;
-              }
-            player->onJump++;
-          }
+
+        if ((player->jumpId < player->multipleJump()) && !player->onJump)
+        {
+          player->jumpId++;
+          player_info.delta.y = 0;
+        }
+
+        /* ignore gravity when jumping */
+        player_info.delta.y -= GlobalDefs::base_gravity;
+        int jump_power = player->getJump () + abs (player_info.delta.x) / 5;
+        if (!player->onJump)
+        {
+          player_info.delta.y -= jump_power;
+        }
+        player->onJump++;
       }
+    }
     if (player_info.delta.y < 0)
-      {
-        player->setState (PLAYER_JUMP);
-      }
+    {
+      player->setState (PLAYER_JUMP);
+    }
     else if (player_info.delta.y > 0)
-      {
-        player->setState (PLAYER_FALL);
-      }
+    {
+      player->setState (PLAYER_FALL);
+    }
 
     if (action & ACTION_UP_REL)
+    {
+      /* prevent jump while on air */
+      if (player->onJump > 0 && player->onJump <= JUMPING_TRIGGER)
       {
-        /* prevent jump while on air */
-        if (player->onJump > 0 && player->onJump <= JUMPING_TRIGGER)
-          player->onJump = JUMPING_TRIGGER;
-        else
-          player->onJump = JUMPING_RESET;
+        player->onJump = JUMPING_TRIGGER;
       }
+      if (player->jumpId < player->multipleJump())
+      {
+        player->onJump = JUMPING_RESET;
+      }
+    }
   }
 
-  bool LevelManager::canMoveTo (t_point p, ActiveDrawable * character,
+  t_move LevelManager::canMoveTo (t_point p, ActiveDrawable * character,
                                 t_direction dir)
   {
     pixelType pixel;
+    bool move_ok = false;
     switch (dir & 0xF)
       {
       case DIRECTION_DOWN:
         p.y++;
         pixel = level_surface->testPixel (p);
-        return (pixel != PIXELTYPE_SOLID && pixel != PIXELTYPE_DOWN_ONLY);
+        move_ok = (pixel != PIXELTYPE_SOLID && pixel != PIXELTYPE_DOWN_ONLY);
         break;
       case DIRECTION_UP:
         p.y -= character->getHeight ();
         pixel = level_surface->testPixel (p);
-        return (pixel != PIXELTYPE_SOLID && pixel != PIXELTYPE_UP_ONLY);
+        move_ok = (pixel != PIXELTYPE_SOLID && pixel != PIXELTYPE_UP_ONLY);
         break;
       case DIRECTION_LEFT:
         p.x -= character->getWidth () / 4;
         pixel = level_surface->testPixel (p);
-        return (pixel != PIXELTYPE_SOLID);
+        move_ok = (pixel != PIXELTYPE_SOLID);
         break;
       case DIRECTION_RIGHT:
         p.x += character->getWidth () / 4;
         pixel = level_surface->testPixel (p);
-        return (pixel != PIXELTYPE_SOLID);
+        move_ok = (pixel != PIXELTYPE_SOLID);
         break;
       default:
-        return false;
+        assert(0);
       }
-    return false;
+    if (pixel == PIXELTYPE_DEATH)
+      return MOVE_DEATH;
+    if (move_ok)
+      return MOVE_OK;
+    return MOVE_NOT;
   }
 
   template<typename T>
@@ -303,7 +320,8 @@ namespace jumpinjack
             t_direction dir = (inc > 0) ? DIRECTION_RIGHT : DIRECTION_LEFT;
             for (int i = 0; i < abs (it.delta.x); i++)
               {
-                if (canMoveTo (it.point, character, dir))
+                t_move move_result = canMoveTo (it.point, character, dir);
+                if (move_result == MOVE_OK)
                   {
                     it.point.x += inc;
                   }
@@ -326,12 +344,21 @@ namespace jumpinjack
                   it.point.x = level_width;
               }
           }
-        /* move horizontal */
 
         /* gravity */
-        if (canMoveTo (it.point, character, DIRECTION_DOWN))
+        t_move move_result = canMoveTo (it.point, character, DIRECTION_DOWN);
+        if (move_result == MOVE_OK)
+        {
           it.delta.y = min (GlobalDefs::max_falling_speed,
                             it.delta.y + gravity);
+          character->jumpId = max(1,character->jumpId);
+        }
+        else if (move_result == MOVE_DEATH)
+        {
+          character->onDestroy();
+        }
+        else
+          character->jumpId = 0;
 
         /* move vertical */
         if (it.delta.y)
@@ -339,38 +366,53 @@ namespace jumpinjack
             int inc = sgn (it.delta.y);
             t_direction dir = (inc > 0) ? DIRECTION_DOWN : DIRECTION_UP;
             for (int i = 0; i < abs (it.delta.y); i++)
+            {
+              t_move move_result = canMoveTo (it.point, character, dir);
+              if (move_result == MOVE_OK)
               {
-                if (canMoveTo (it.point, character, dir))
+                it.point.y += inc;
+                if (!(character->jumpId < character->multipleJump()) && dir == DIRECTION_DOWN)
+                {
+                  if (!character->onJump)
                   {
-                    it.point.y += inc;
-                    if (dir == DIRECTION_DOWN)
-                      {
-                        if (!character->onJump)
-                          character->onJump = JUMPING_TRIGGER;
-                        else if (character->onJump
-                            < GlobalDefs::jump_sensitivity)
-                          character->onJump = GlobalDefs::jump_sensitivity;
-                      }
-
+                    character->onJump = JUMPING_TRIGGER;
                   }
-                else
-                  {
-                    if (dir == DIRECTION_DOWN)
-                      {
-                        if (character->onJump == JUMPING_TRIGGER)
-                          character->onJump = JUMPING_RESET;
-                        else if (character->onJump)
-                          character->onJump = (JUMPING_TRIGGER + 1);
-                      }
-                    if (character->onCollision (
-                        0, (t_direction) (DIRECTION_VERTICAL | dir),
-                        ITEM_PASSIVE, it.point, it.delta) == COLLISION_IGNORE)
-                      it.delta.y = 0;
-                    break;
-                  }
+                  else if (character->onJump < GlobalDefs::jump_sensitivity)
+                    character->onJump = GlobalDefs::jump_sensitivity;
+                }
               }
+              else if (move_result == MOVE_DEATH)
+              {
+                character->onDestroy();
+              }
+              else
+              {
+                if (dir == DIRECTION_DOWN)
+                {
+                  if (character->onJump == JUMPING_TRIGGER)
+                  {
+                    character->jumpId = 0;
+                    character->onJump = JUMPING_RESET;
+                  }
+                  else if (character->onJump)
+                    character->onJump = (JUMPING_TRIGGER + 1);
+                }
+                if (character->onCollision (0, (t_direction) (DIRECTION_VERTICAL | dir),
+                      ITEM_PASSIVE, it.point, it.delta) == COLLISION_IGNORE)
+                    it.delta.y = 0;
+                break;
+              }
+            }
           }
         /* move vertical */
+
+        if (it.type == ITEM_PLAYER && character->getStatus (STATUS_DYING))
+        {
+          character->unsetStatus(STATUS_DYING);
+          character->setStatus(STATUS_LISTENING);
+          it.point = checkpoint;
+          it.delta = {0,0};
+        }
       }
   }
 

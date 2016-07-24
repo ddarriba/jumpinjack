@@ -20,7 +20,8 @@ namespace jumpinjack
     PIXELTYPE_NONE,
     PIXELTYPE_SOLID,
     PIXELTYPE_UP_ONLY,
-    PIXELTYPE_DOWN_ONLY
+    PIXELTYPE_DOWN_ONLY,
+	PIXELTYPE_DEATH
   };
 
   class Surface

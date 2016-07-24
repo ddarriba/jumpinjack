@@ -54,6 +54,9 @@ namespace jumpinjack
                            t_point * center = NULL);
       virtual void renderFixed (t_point point) {};
 
+      virtual t_collision getCollisionEffect (t_itemtype type,
+                                              t_direction dir) const;
+
       static void cleanCache (void);
 
     protected:

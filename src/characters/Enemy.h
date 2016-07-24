@@ -1,9 +1,9 @@
 /*
- * Enemy.h
- *
- *  Created on: May 17, 2015
- *      Author: diego
- */
+* Enemy.h
+*
+*  Created on: May 17, 2015
+*      Author: diego
+*/
 
 #ifndef CHARACTERS_ENEMY_H_
 #define CHARACTERS_ENEMY_H_
@@ -19,9 +19,9 @@ namespace jumpinjack
 
   class Enemy : public ActiveDrawable
   {
-    public:
-      Enemy (SDL_Renderer * renderer, std::string sprite_file,
-             int sprite_length, int sprite_start_line, int sprite_frequency);
+  public:
+    Enemy (SDL_Renderer * renderer, std::string sprite_file,
+      int sprite_length, int sprite_start_line, int sprite_frequency);
       virtual ~Enemy ();
 
       virtual void onCreate (void);
@@ -32,8 +32,10 @@ namespace jumpinjack
                                        t_point * otherpoint = 0,
                                        t_point * otherdelta = 0);
       virtual void update (SDL_Point & next_point);
-    private:
-      int status_count;
+      virtual t_collision getCollisionEffect (t_itemtype type,
+                                              t_direction dir) const;
+  private:
+    int status_count;
   };
 
 } /* namespace jumpinjack */

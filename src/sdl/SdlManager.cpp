@@ -225,19 +225,21 @@ namespace jumpinjack
   {
     Uint32 time;
     int x, y;
-    const int NUMMENU = 3;
+    const int NUMMENU = 4;
     const char* labels[NUMMENU] =
-        { "Continue",
+        { "New Game",
+          "Continue",
           "Change Controls",
           "Exit" };
     menu_option return_val = MENU_OPTION_CONTINUE;
     const menu_option returnval_array[NUMMENU] =
           { MENU_OPTION_CONTINUE,
             MENU_OPTION_CONTINUE,
+            MENU_OPTION_CONTINUE,
             MENU_OPTION_EXIT };
     Drawable * menus[NUMMENU];
-    bool selected[NUMMENU] =
-      { 0, 0 };
+    int selected = 0;
+
     SDL_Color color[2] =
       {
         { 0, 0, 0 },
@@ -273,25 +275,13 @@ namespace jumpinjack
                 x = event.motion.x;
                 y = event.motion.y;
                 for (int i = 0; i < NUMMENU; i += 1)
-                  {
+                {
                     if (x >= pos[i].x && x <= pos[i].x + pos[i].w
                         && y >= pos[i].y && y <= pos[i].y + pos[i].h)
-                      {
-                        if (!selected[i])
-                          {
-                            selected[i] = 1;
-                            menus[i]->loadFromRenderedText(labels[i], color[1]);
-                          }
-                      }
-                    else
-                      {
-                        if (selected[i])
-                          {
-                            selected[i] = 0;
-                            menus[i]->loadFromRenderedText(labels[i], color[0]);
-                          }
-                      }
-                  }
+                    {
+                      selected = i;
+                    }
+                }
                 break;
               case SDL_MOUSEBUTTONDOWN:
                 x = event.button.x;
@@ -307,11 +297,22 @@ namespace jumpinjack
                   }
                 break;
               case SDL_KEYDOWN:
-                if (event.key.keysym.sym == SDLK_y)
-                  {
-                    return_val = MENU_OPTION_CONTINUE;
+                switch (event.key.keysym.sym)
+                {
+                  case SDLK_y:
+                    return_val = returnval_array[selected];
                     in_loop = false;
-                  }
+                    break;
+                  case SDLK_UP:
+                    selected += NUMMENU-1;
+                    selected %= NUMMENU;
+                    break;
+                  case SDLK_DOWN:
+                    selected += 1;
+                    selected %= NUMMENU;
+                    break;
+                }
+
                 break;
               }
           }
@@ -320,10 +321,12 @@ namespace jumpinjack
 //                             (SCREEN_HEIGHT - gTextTexture.getHeight ()) / 2);
 
         for (int i = 0; i < NUMMENU; i += 1)
-          {
-            menus[i]->render ({(GlobalDefs::window_size.x - menus[i]->getWidth ()) / 2, pos[i].y},{menus[i]->getWidth (),
-                              menus[i]->getHeight ()});
-          }
+        {
+          menus[i]->loadFromRenderedText(labels[i], color[selected == i]);
+          menus[i]->render (
+            {(GlobalDefs::window_size.x - menus[i]->getWidth ()) / 2, pos[i].y},
+            {menus[i]->getWidth (), menus[i]->getHeight ()});
+        }
         SDL_RenderPresent (renderer);
         //SDL_Flip(screen);
         if (1000 / 30 > (SDL_GetTicks () - time))

@@ -71,6 +71,10 @@ namespace jumpinjack
       {
         return PIXELTYPE_DOWN_ONLY;
       }
+    else if (((int) blue == 255) && !red && !green)
+    {
+      return PIXELTYPE_DEATH;
+    }
     else
       {
         return PIXELTYPE_NONE;

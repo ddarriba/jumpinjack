@@ -21,7 +21,7 @@ namespace jumpinjack
     current_state = PLAYER_RUN;
     att_accel = 5;
     att_jump = 20;
-    att_speed = 10;
+    att_speed = 15;
   }
 
   Player::~Player ()
@@ -35,7 +35,8 @@ namespace jumpinjack
 
   void Player::onDestroy (void)
   {
-
+	 unsetStatus (STATUS_LISTENING);
+	 setStatus (STATUS_DYING);
   }
 
   t_collision Player::onCollision (Drawable * item, t_direction dir,
@@ -43,6 +44,28 @@ namespace jumpinjack
                                    t_point & delta, t_point * otherpoint,
                                    t_point * otherdelta)
   {
+	if (!item) return COLLISION_IGNORE;
+	t_collision collisionEffect = item->getCollisionEffect(ITEM_PLAYER, dir);
+	if (!getStatus (STATUS_UNTOUCHABLE) && collisionEffect == COLLISION_HIT)
+	{
+		if (!getStatus (STATUS_UNTOUCHABLE))
+		{
+		  if (dir & DIRECTION_LEFT)
+		  {
+		    delta.x = 25;
+		  }
+		  else
+		  {
+		    delta.x = -25;
+		  }
+		  current_state = PLAYER_HIT;
+		  unsetStatus (STATUS_LISTENING);
+		  setStatus (STATUS_UNTOUCHABLE);
+		  sprite_index = 0;
+		  hit_counter = 0;
+		}
+		return COLLISION_DIE;
+	}
     if (type == ITEM_ENEMY)
       {
         if (dir & DIRECTION_DOWN)
@@ -51,12 +74,12 @@ namespace jumpinjack
             if (delta.y < 0)
               {
                 delta.y -= att_jump / 2;
-                onJump = 1;
+                //onJump = 1;
               }
             else
               {
                 delta.y = -att_jump;
-                onJump = 1;
+                //onJump = 1;
               }
           }
         else

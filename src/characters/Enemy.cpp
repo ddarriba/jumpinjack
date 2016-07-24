@@ -1,9 +1,9 @@
 /*
- * Enemy.cpp
- *
- *  Created on: May 17, 2015
- *      Author: diego
- */
+* Enemy.cpp
+*
+*  Created on: May 17, 2015
+*      Author: diego
+*/
 
 #include "Enemy.h"
 
@@ -12,10 +12,16 @@ using namespace std;
 namespace jumpinjack
 {
 
-  Enemy::Enemy (SDL_Renderer * renderer, std::string sprite_file,
-                int sprite_length, int sprite_start_line, int sprite_frequency) :
-          ActiveDrawable (renderer, sprite_file, sprite_length,
-                          sprite_start_line, sprite_frequency)
+  Enemy::Enemy (SDL_Renderer * renderer,
+                std::string sprite_file,
+                int sprite_length,
+                int sprite_start_line,
+                int sprite_frequency) :
+    ActiveDrawable (renderer,
+                    sprite_file,
+                    sprite_length,
+                    sprite_start_line,
+                    sprite_frequency)
   {
     att_accel = 5;
     att_jump = 0;
@@ -38,47 +44,59 @@ namespace jumpinjack
     setStatus (STATUS_DYING);
   }
 
-  t_collision Enemy::onCollision (Drawable * item, t_direction dir,
+  t_collision Enemy::onCollision (Drawable * item,
+                                  t_direction dir,
                                   t_itemtype type, t_point & point,
                                   t_point & delta, t_point * otherpoint,
                                   t_point * otherdelta)
   {
     int collision_result = COLLISION_IGNORE;
     if ((dir & DIRECTION_HORIZONTAL) && type != ITEM_PLAYER)
-      {
-        if (direction == DIRECTION_RIGHT)
-          direction = DIRECTION_LEFT;
-        else
-          direction = DIRECTION_RIGHT;
-        collision_result |= COLLISION_TURN;
-      }
+    {
+      if (direction == DIRECTION_RIGHT)
+        direction = DIRECTION_LEFT;
+      else
+        direction = DIRECTION_RIGHT;
+      collision_result |= COLLISION_TURN;
+    }
     if (((dir & DIRECTION_UP) && type == ITEM_PLAYER) ||
-        type == ITEM_PROJECTILE)
-      {
-        return COLLISION_DIE;
-        /* DIE */
-      }
+          type == ITEM_PROJECTILE)
+    {
+      return COLLISION_DIE;
+      /* DIE */
+    }
     return (t_collision) collision_result;
+  }
+
+  t_collision Enemy::getCollisionEffect (t_itemtype type,
+      t_direction dir) const
+  {
+    if (type == ITEM_PLAYER)
+      return COLLISION_HIT;
+    else
+      if (direction == DIRECTION_RIGHT || direction == DIRECTION_LEFT)
+        return COLLISION_TURN;
+    return COLLISION_IGNORE;
   }
 
   void Enemy::update (SDL_Point & next_point)
   {
     if (getStatus (STATUS_DYING))
+    {
+      status_count++;
+      //*y += 10;
+      if (status_count >= 10)
       {
-        status_count++;
-        //*y += 10;
-        if (status_count >= 10)
-          {
-            unsetStatus (STATUS_ALIVE);
-          }
+        unsetStatus (STATUS_ALIVE);
       }
+    }
     else
-      {
-        if (direction == DIRECTION_RIGHT)
-          next_point.x = att_speed;
-        else
-          next_point.x = -att_speed;
-      }
+    {
+      if (direction == DIRECTION_RIGHT)
+        next_point.x = att_speed;
+      else
+        next_point.x = -att_speed;
+    }
 
     ActiveDrawable::update(next_point);
   }

@@ -44,29 +44,15 @@ namespace jumpinjack
 
       virtual void update (SDL_Point & next_point);
 
-      int getAccel ()
-      {
-        return att_accel;
-      }
-      int getSpeed ()
-      {
-        return att_speed;
-      }
-      int getJump ()
-      {
-        return att_jump;
-      }
-
-      t_direction getDirection ()
-      {
-        return direction;
-      }
-      void setDirection (t_direction dir)
-      {
-        direction = dir;
-      }
+      int getAccel () const;
+      int getSpeed () const;
+      int getJump () const;
+      t_direction getDirection () const;
+      void setDirection (t_direction dir);
+      int multipleJump( void ) const;
 
       int onJump;
+      int jumpId;
     protected:
       SDL_Rect renderQuad;
 
@@ -79,6 +65,8 @@ namespace jumpinjack
       int att_accel;
       int att_speed;
       int att_jump;
+
+      int n_jumps;
   };
 
 } /* namespace jumpinjack */

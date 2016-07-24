@@ -123,6 +123,13 @@ typedef enum
     RESOURCE_FONT = 4
 } t_resource;
 
+typedef enum
+{
+    MOVE_NOT   = 1,
+    MOVE_OK    = 2,
+    MOVE_DEATH = 3,
+} t_move;
+
 namespace jumpinjack
 {
 

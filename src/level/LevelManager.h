@@ -43,7 +43,7 @@ namespace jumpinjack
 
     private:
       void updatePosition (itemInfo & it);
-      bool canMoveTo (t_point p, ActiveDrawable * character, t_direction dir);
+      t_move canMoveTo (t_point p, ActiveDrawable * character, t_direction dir);
 
       SDL_Renderer * renderer;
 
@@ -53,6 +53,8 @@ namespace jumpinjack
       std::vector<itemInfo> items;
       std::vector<BackgroundDrawable *> bg_layers;
       Surface * level_surface;
+
+      t_point checkpoint;
 
   };
 

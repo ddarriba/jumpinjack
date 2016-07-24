@@ -171,6 +171,12 @@ namespace jumpinjack
                       flip);
   }
 
+  t_collision Drawable::getCollisionEffect (t_itemtype type,
+                                            t_direction dir) const
+  {
+    return COLLISION_IGNORE;
+  }
+
   std::map<std::string, graphicInfo> Drawable::cachedSurfaces;
 
   void Drawable::cleanCache (void)
