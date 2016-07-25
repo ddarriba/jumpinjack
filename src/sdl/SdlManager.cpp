@@ -70,6 +70,10 @@ namespace jumpinjack
           }
         else
           {
+            //Create window icon
+            window_icon = IMG_Load("data/img/icon.png");
+            SDL_SetWindowIcon(window, window_icon);
+
             //Create vsynced renderer for window
             renderer = SDL_CreateRenderer (
                 window, -1,
@@ -360,9 +364,11 @@ namespace jumpinjack
   {
     if (game_paused)
       {
+        level->pause(true);
         switch(ingame_menu->poll())
         {
           case MENU_CONTINUE:
+            level->pause(false);
             events_queue.push (
               { EVENT_MENU_UNLOAD,
                 { 0, 0 } });

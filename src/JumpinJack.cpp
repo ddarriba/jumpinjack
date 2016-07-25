@@ -1,6 +1,6 @@
 //============================================================================
 // Name        : JumpinJack.cpp
-// Author      : 
+// Author      :
 // Version     :
 // Copyright   : Your copyright notice
 // Description : Hello World in C, Ansi-style
@@ -46,7 +46,7 @@ int main (void)
   manager.addPlayer (GlobalDefs::getResource (RESOURCE_IMAGE, "player1.png"),
                      3, 0, 3);
 
-  manager.startLevel (1);
+
 
   bool in_game = true;
 
@@ -65,6 +65,8 @@ int main (void)
   int i = manager.showmenu (font);
   if (i == 1)
     in_game = false;
+
+  manager.startLevel (1);
 
   bool game_paused = false;
   while (in_game)

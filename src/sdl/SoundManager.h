@@ -25,11 +25,16 @@ namespace jumpinjack
       virtual ~SoundManager ();
 
       unsigned long loadFromFile (const std::string & path);
-      void playSound(unsigned int sound_id);
+      unsigned long loadMusic (const std::string & path);
+      void playSound(unsigned int sound_id, int loops = 0);
+      void playMusic(unsigned int sound_id, int loops = -1);
+      void setMusicVolume(int volume);
+      void stopMusic();
       void cleanCache (void);
     private:
       unsigned long next_sound_id;
       std::map<unsigned long, Mix_Chunk *> cachedSounds;
+      std::map<unsigned long, Mix_Music *> cachedMusic;
   };
 
 } /* namespace jumpinjack */

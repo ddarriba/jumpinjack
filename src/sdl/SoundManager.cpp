@@ -42,9 +42,42 @@ unsigned long SoundManager::loadFromFile (const string & path)
   return next_sound_id;
 }
 
-void SoundManager::playSound(unsigned int sound_id)
+unsigned long SoundManager::loadMusic (const string & path)
 {
-  if( Mix_PlayChannel( -1, cachedSounds[sound_id], 0 ) == -1 )
+  ++next_sound_id;
+  Mix_Music * new_music = Mix_LoadMUS ( path.c_str() );
+  if (new_music == NULL)
+  {
+    cerr << "ERROR LOADING MUSIC " << path << endl;
+    return 0;
+  }
+
+  cachedMusic[next_sound_id] = new_music;
+
+  return next_sound_id;
+}
+
+void SoundManager::playMusic(unsigned int sound_id, int loops)
+{
+  if( Mix_PlayMusic(cachedMusic[sound_id], loops) == -1 )
+  {
+    printf("ERROR PLAYING MUSIC\n");
+  }
+}
+
+void SoundManager::setMusicVolume(int volume)
+{
+  Mix_VolumeMusic(volume);
+}
+
+void SoundManager::stopMusic()
+{
+  Mix_HaltMusic();
+}
+
+void SoundManager::playSound(unsigned int sound_id, int loops)
+{
+  if( Mix_PlayChannel( -1, cachedSounds[sound_id], loops ) == -1 )
   {
     printf("ERROR PLAYING SOUND\n");
   }
@@ -58,6 +91,13 @@ void SoundManager::cleanCache (void)
     Mix_FreeChunk( it->second );
   }
   cachedSounds.clear();
+
+  for (map<unsigned long, Mix_Music *>::iterator it = cachedMusic.begin ();
+       it != cachedMusic.end (); ++it)
+  {
+    Mix_FreeMusic( it->second );
+  }
+  cachedMusic.clear();
 }
 
 }

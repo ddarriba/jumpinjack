@@ -171,6 +171,11 @@ namespace jumpinjack
     sound_manager = new SoundManager();
     sound_jump  = sound_manager->loadFromFile("data/sound/jump001.wav");
     sound_shoot = sound_manager->loadFromFile("data/sound/shoot001.wav");
+    sound_bgmusic = sound_manager->loadMusic("data/sound/music001.ogg");
+
+    sound_manager->playMusic(sound_bgmusic);
+
+    paused = false;
   }
 
   LevelManager::~LevelManager ()
@@ -618,5 +623,14 @@ namespace jumpinjack
         it.item->renderFixed (render_point);
       }
     }
+  }
+
+  void LevelManager::pause(bool set)
+  {
+    if (set == paused)
+      return;
+
+    paused = set;
+    sound_manager->setMusicVolume(paused?48:128);
   }
 } /* namespace jumpinjack */

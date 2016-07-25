@@ -65,10 +65,9 @@ namespace jumpinjack
       virtual ~LevelManager ();
 
       void applyAction (int player_id, t_action action);
-
       void update ();
-
       void render ();
+      void pause (bool set);
 
     private:
       bool updatePosition (itemInfo & it);
@@ -90,6 +89,9 @@ namespace jumpinjack
 
       unsigned long sound_jump;
       unsigned long sound_shoot;
+      unsigned long sound_bgmusic;
+
+      bool paused;
   };
 
 } /* namespace jumpinjack */

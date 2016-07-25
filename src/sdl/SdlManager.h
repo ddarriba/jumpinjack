@@ -67,6 +67,7 @@ namespace jumpinjack
       SDL_Window * window;
       SDL_Renderer * renderer;
 
+      SDL_Surface * window_icon;
       SDL_Surface * menu_screen;
 
       Uint32 start_ticks;
