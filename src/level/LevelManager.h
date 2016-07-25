@@ -22,6 +22,34 @@ namespace jumpinjack
 
   typedef struct
   {
+    std::string filename;
+    int parallax_level;
+    bool repeat_x;
+    int parallax_speed;
+  } t_parallax_layer;
+
+  typedef struct
+  {
+    std::string sprite_filename;
+    int sprite_len;
+    int sprite_start;
+    int sprite_speed;
+    t_itemtype type;
+    t_point start_point;
+    t_point start_delta;
+  } t_item_desc;
+
+  typedef struct
+  {
+    std::vector<t_point> player_start_point;
+    std::vector<t_point> player_start_delta;
+    std::vector<t_parallax_layer> parallax_layers;
+    std::string surface_filename;
+    std::vector<t_item_desc> items;
+  } t_level_data;
+
+  typedef struct
+  {
       DrawableItem * item;
       t_itemtype type;
       t_point point;
@@ -42,8 +70,9 @@ namespace jumpinjack
       void render ();
 
     private:
-      void updatePosition (itemInfo & it);
+      bool updatePosition (itemInfo & it);
       t_move canMoveTo (t_point p, ActiveDrawable * character, t_direction dir);
+      void loadLevelData(std::vector<Player *> & players);
 
       SDL_Renderer * renderer;
 
@@ -55,6 +84,7 @@ namespace jumpinjack
       Surface * level_surface;
 
       t_point checkpoint;
+      t_level_data level_data;
 
   };
 

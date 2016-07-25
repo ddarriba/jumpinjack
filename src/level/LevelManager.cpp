@@ -17,99 +17,156 @@ using namespace std;
 namespace jumpinjack
 {
 
-  LevelManager::LevelManager (SDL_Renderer * renderer, int level_id,
-                              std::vector<Player *> & players) :
-          renderer (renderer), level_id (level_id),
-          num_players (players.size ())
+  static void parse_level_file(int level_id, int n_players, t_level_data & level_data)
   {
     stringstream ss;
-    string level_data;
-    ss << "level" << level_id << ".dat";
-    level_data = GlobalDefs::getResource (RESOURCE_DATA, ss.str ().c_str ());
     string line;
-    ifstream myfile (level_data);
-    assert(myfile.is_open ());
+    string filename;
+    ss << "level" << level_id << ".dat";
+    filename = GlobalDefs::getResource (RESOURCE_DATA, ss.str().c_str());
 
-    items.reserve (MAX_LEVEL_ITEMS);
-    for (Player * player : players)
-      {
-        t_point position, delta;
-        getline (myfile, line);
-        sscanf (line.c_str (), "%d %d %d %d", &position.x, &position.y,
-                &delta.x, &delta.y);
-        items.push_back (
-          { player, ITEM_PLAYER, position, delta });
-        checkpoint = position;
-      }
+    ifstream myfile (filename);
+    assert (myfile.is_open ());
 
-    for (int i = num_players; i < MAX_PLAYERS; i++)
+    level_data.player_start_point.reserve (n_players);
+    level_data.player_start_delta.reserve (n_players);
+
+    for (int i = 0; i < n_players; ++i)
+    {
+      t_point position, delta;
       getline (myfile, line);
+      sscanf (line.c_str (), "{%d,%d} {%d,%d}", &position.x, &position.y,
+              &delta.x, &delta.y);
+      level_data.player_start_point.push_back (position);
+      level_data.player_start_delta.push_back (delta);
+    }
 
-    bg_layers.reserve (PARALLAX_LAYERS);
+    for (int i = n_players; i < MAX_PLAYERS; i++)
+    {
+      /* skip line */
+      getline (myfile, line);
+    }
+
+    level_data.parallax_layers.resize (PARALLAX_LAYERS);
     for (int i = 0; i < PARALLAX_LAYERS; i++)
-      {
-        getline (myfile, line);
-        char bg_file_cstr[300];
-        string bg_file;
-        int parallax_level;
-        int repeat_x;
-        int auto_speed;
-        sscanf (line.c_str (), "%s %d %d %d", bg_file_cstr, &parallax_level,
-                &repeat_x, &auto_speed);
-        bg_file = GlobalDefs::getResource (RESOURCE_IMAGE, bg_file_cstr);
-        bg_layers.push_back (
-            new BackgroundDrawable (renderer, bg_file, parallax_level,
-                                    repeat_x == 1, auto_speed));
-      }
+    {
+      getline (myfile, line);
+      char bg_file_cstr[300];
+      string bg_file;
+      int parallax_level;
+      int repeat_x;
+      int auto_speed;
+      sscanf (line.c_str (), "%s %d %d %d", bg_file_cstr, &parallax_level,
+              &repeat_x, &auto_speed);
+      bg_file = GlobalDefs::getResource (RESOURCE_IMAGE, bg_file_cstr);
+
+      level_data.parallax_layers[i].filename = bg_file;
+      level_data.parallax_layers[i].parallax_level = parallax_level;
+      level_data.parallax_layers[i].repeat_x = repeat_x;
+      level_data.parallax_layers[i].parallax_speed = auto_speed;
+    }
 
     getline (myfile, line);
-    level_surface = new Surface (
-        GlobalDefs::getResource (RESOURCE_IMAGE, line.c_str ()));
+    level_data.surface_filename = GlobalDefs::getResource (RESOURCE_IMAGE, line.c_str ());
 
-    items.push_back (
-          { new Enemy (renderer,
-                       GlobalDefs::getResource (RESOURCE_IMAGE, "enemies.png"),
-                       8, 0, 2), ITEM_ENEMY,
-            { 500, 300 },
-            { 0, 0 } });
-    items.push_back (
-          { new Enemy (renderer,
-                       GlobalDefs::getResource (RESOURCE_IMAGE, "enemies.png"),
-                       8, 0, 2), ITEM_ENEMY,
-            { 800, 300 },
-            { 0, 0 } });
-    items.push_back (
-          { new Enemy (renderer,
-                       GlobalDefs::getResource (RESOURCE_IMAGE, "enemies.png"),
-                       8, 0, 2), ITEM_ENEMY,
-            { 1000, 300 },
-            { 0, 0 } });
-    items.push_back (
-          { new Enemy (renderer,
-                       GlobalDefs::getResource (RESOURCE_IMAGE, "enemies.png"),
-                       8, 0, 2), ITEM_ENEMY,
-            { 1200, 300 },
-            { 0, 0 } });
-    items.push_back (
-          { new Enemy (renderer,
-                       GlobalDefs::getResource (RESOURCE_IMAGE, "enemies.png"),
-                       8, 0, 2), ITEM_ENEMY,
-            { 2700, 300 },
-            { 0, 0 } });
-    items.push_back (
-          { new Enemy (renderer,
-                       GlobalDefs::getResource (RESOURCE_IMAGE, "enemies.png"),
-                       8, 0, 2), ITEM_ENEMY,
-            { 2900, 300 },
-            { 0, 0 } });
-    items.push_back (
-          { new Enemy (renderer,
-                       GlobalDefs::getResource (RESOURCE_IMAGE, "enemies.png"),
-                       8, 0, 2), ITEM_ENEMY,
-            { 3500, 300 },
-            { 0, 0 } });
-    level_width = 4000;
+    getline (myfile, line);
+    int n_items;
+    sscanf (line.c_str (), "%d", &n_items);
+    level_data.items.resize (n_items);
+
+    for (int i = 0; i < n_items; ++i)
+    {
+      getline (myfile, line);
+      char resource_img[300], item_typestr[40];
+      int sprite_len, sprite_start, sprite_freq;
+      t_point item_pos, item_delta;
+      t_itemtype item_type = ITEM_PASSIVE;
+      sscanf (line.c_str (), "%s %d %d %d %s {%d,%d} {%d,%d}", resource_img,
+              &sprite_len, &sprite_start, &sprite_freq, item_typestr,
+              &item_pos.x, &item_pos.y, &item_delta.x, &item_delta.y);
+      if (!strcmp (item_typestr, "ITEM_ENEMY"))
+        item_type = ITEM_ENEMY;
+
+      level_data.items[i].sprite_filename = GlobalDefs::getResource (RESOURCE_IMAGE, resource_img);
+      level_data.items[i].sprite_len      = sprite_len;
+      level_data.items[i].sprite_start    = sprite_start;
+      level_data.items[i].sprite_speed    = sprite_freq;
+      level_data.items[i].type            = item_type;
+      level_data.items[i].start_point     = item_pos;
+      level_data.items[i].start_delta     = item_delta;
+    }
     myfile.close ();
+  }
+
+  void LevelManager::loadLevelData(vector<Player *> & players)
+  {
+    /* clean */
+    for (itemInfo item : items)
+    {
+      if (item.type != ITEM_PLAYER)
+        delete item.item;
+    }
+    items.clear();
+
+    for (BackgroundDrawable * bg_layer : bg_layers)
+    {
+      delete bg_layer;
+    }
+    bg_layers.clear();
+
+    if (level_surface)
+    {
+      delete level_surface;
+      level_surface = 0;
+    }
+
+    items.reserve (MAX_LEVEL_ITEMS);
+    int i = 0;
+    for (Player * player : players)
+    {
+      items.push_back (
+            { player, ITEM_PLAYER, level_data.player_start_point[i],
+                level_data.player_start_delta[i] });
+      checkpoint = level_data.player_start_point[i];
+      ++i;
+    }
+    bg_layers.reserve (level_data.parallax_layers.size ());
+    for (t_parallax_layer & p_layer : level_data.parallax_layers)
+      {
+        bg_layers.push_back (
+            new BackgroundDrawable (renderer, p_layer.filename,
+                                    p_layer.parallax_level, p_layer.repeat_x,
+                                    p_layer.parallax_speed));
+      }
+    level_surface = new Surface (level_data.surface_filename);
+    for (t_item_desc & item_desc : level_data.items)
+    {
+      switch (item_desc.type)
+      {
+        case ITEM_ENEMY:
+          items.push_back (
+                { new Enemy (renderer, item_desc.sprite_filename,
+                             item_desc.sprite_len, item_desc.sprite_start,
+                             item_desc.sprite_speed), ITEM_ENEMY,
+                    item_desc.start_point, item_desc.start_delta });
+          break;
+        default:
+          assert (0);
+      }
+    }
+  }
+
+  LevelManager::LevelManager (SDL_Renderer * renderer, int level_id,
+                              vector<Player *> & players) :
+      renderer (renderer), level_id (level_id), num_players (players.size ())
+  {
+    level_surface = 0;
+
+    parse_level_file(level_id, players.size(), level_data);
+
+    loadLevelData(players);
+
+    level_width = 4000;
   }
 
   LevelManager::~LevelManager ()
@@ -124,7 +181,7 @@ namespace jumpinjack
 
   void LevelManager::applyAction (int player_id, t_action action)
   {
-    assert(player_id < num_players);
+    assert (player_id < num_players);
     itemInfo & player_info = items[player_id];
     Player * player = (Player *) player_info.item;
 
@@ -136,39 +193,38 @@ namespace jumpinjack
         (action & ACTION_SPRINT) ?
             1.5 * player->getSpeed () : player->getSpeed ();
     if (action & ACTION_RIGHT)
-      {
-        player->setState (PLAYER_RUN);
-        player->setDirection (DIRECTION_RIGHT);
-        player_info.delta.x += player->getAccel ();
-        if (player_info.delta.x > max_speed)
-          player_info.delta.x = max_speed;
-        run = true;
-      }
+    {
+      player->setState (PLAYER_RUN);
+      player->setDirection (DIRECTION_RIGHT);
+      player_info.delta.x += player->getAccel ();
+      if (player_info.delta.x > max_speed)
+        player_info.delta.x = max_speed;
+      run = true;
+    }
     if (action & ACTION_LEFT)
-      {
-        player->setState (PLAYER_RUN);
-        player->setDirection (DIRECTION_LEFT);
-        player_info.delta.x -= player->getAccel ();
-        if (player_info.delta.x < -max_speed)
-          player_info.delta.x = -max_speed;
-        run = true;
-      }
+    {
+      player->setState (PLAYER_RUN);
+      player->setDirection (DIRECTION_LEFT);
+      player_info.delta.x -= player->getAccel ();
+      if (player_info.delta.x < -max_speed)
+        player_info.delta.x = -max_speed;
+      run = true;
+    }
     if (action & ACTION_SHOOT)
-      {
-        t_point point = player_info.point;
-        if (player->getDirection () == DIRECTION_RIGHT)
-          point.x += 50;
-        else
-          point.x -= 50;
-        t_point delta;
-        Projectile * projectile = new Projectile (
-            renderer,
-            GlobalDefs::getResource (RESOURCE_IMAGE, "projectile.png"),
-            player->getDirection (), delta, 60, 30);
-        itemInfo shoot_info =
-          { projectile, ITEM_PROJECTILE, point, delta };
-        items.push_back (shoot_info);
-      }
+    {
+      t_point point = player_info.point;
+      if (player->getDirection () == DIRECTION_RIGHT)
+        point.x += 50;
+      else
+        point.x -= 50;
+      t_point delta;
+      Projectile * projectile = new Projectile (
+          renderer, GlobalDefs::getResource (RESOURCE_IMAGE, "projectile.png"),
+          player->getDirection (), delta, 60, 30);
+      itemInfo shoot_info =
+        { projectile, ITEM_PROJECTILE, point, delta };
+      items.push_back (shoot_info);
+    }
     if (!run && !player_info.delta.x)
       player->setState (PLAYER_STAND);
     if (action & ACTION_UP)
@@ -176,7 +232,7 @@ namespace jumpinjack
       if (player->onJump < GlobalDefs::jump_sensitivity)
       {
 
-        if ((player->jumpId < player->multipleJump()) && !player->onJump)
+        if ((player->jumpId < player->multipleJump ()) && !player->onJump)
         {
           player->jumpId++;
           player_info.delta.y = 0;
@@ -208,7 +264,7 @@ namespace jumpinjack
       {
         player->onJump = JUMPING_TRIGGER;
       }
-      if (player->jumpId < player->multipleJump())
+      if (player->jumpId < player->multipleJump ())
       {
         player->onJump = JUMPING_RESET;
       }
@@ -221,7 +277,7 @@ namespace jumpinjack
     pixelType pixel;
     bool move_ok = false;
     switch (dir & 0xF)
-      {
+    {
       case DIRECTION_DOWN:
         p.y++;
         pixel = level_surface->testPixel (p);
@@ -243,8 +299,8 @@ namespace jumpinjack
         move_ok = (pixel != PIXELTYPE_SOLID);
         break;
       default:
-        assert(0);
-      }
+        assert (0);
+    }
     if (pixel == PIXELTYPE_DEATH)
       return MOVE_DEATH;
     if (move_ok)
@@ -275,250 +331,259 @@ namespace jumpinjack
         || min1.y > max2.y)
       return false;
     else
+    {
+      t_direction hdir =
+          (it1.point.x < it2.point.x) ? DIRECTION_RIGHT : DIRECTION_LEFT;
+      *collision_direction = (t_direction) (DIRECTION_HORIZONTAL | hdir);
+      if (it1.point.y < (it2.point.y - it2.item->getHeight () / 2))
       {
-        t_direction hdir =
-            (it1.point.x < it2.point.x) ? DIRECTION_RIGHT : DIRECTION_LEFT;
-        *collision_direction = (t_direction) (DIRECTION_HORIZONTAL | hdir);
-        if (it1.point.y < (it2.point.y - it2.item->getHeight () / 2))
-          {
-            t_direction vdir = DIRECTION_DOWN;
-            *collision_direction = (t_direction) (*collision_direction
-                | DIRECTION_VERTICAL | vdir);
-          }
-        else if (it2.point.y < (it1.point.y - it1.item->getHeight () / 2))
-          {
-            t_direction vdir = DIRECTION_UP;
-            *collision_direction = (t_direction) (*collision_direction
-                | DIRECTION_VERTICAL | vdir);
-          }
-        return true;
+        t_direction vdir = DIRECTION_DOWN;
+        *collision_direction = (t_direction) (*collision_direction
+            | DIRECTION_VERTICAL | vdir);
       }
+      else if (it2.point.y < (it1.point.y - it1.item->getHeight () / 2))
+      {
+        t_direction vdir = DIRECTION_UP;
+        *collision_direction = (t_direction) (*collision_direction
+            | DIRECTION_VERTICAL | vdir);
+      }
+      return true;
+    }
   }
 
-  void LevelManager::updatePosition (itemInfo & it)
+  bool LevelManager::updatePosition (itemInfo & it)
   {
     int friction = GlobalDefs::base_friction;
     int gravity = GlobalDefs::base_gravity;
 
     if (it.type == ITEM_PASSIVE)
-      {
-        it.item->update (it.delta);
-      }
+    {
+      it.item->update (it.delta);
+    }
     else
+    {
+      gravity = (int) round(gravity * dynamic_cast<ActiveDrawable *>(it.item)->getGravityEffect());
+      ActiveDrawable * character = (ActiveDrawable *) it.item;
+      character->update (it.delta);
+
+      /* move horizontal */
+      if (it.delta.x)
       {
-        ActiveDrawable * character = (ActiveDrawable *) it.item;
-        character->update (it.delta);
-
-        /* move horizontal */
-        if (it.delta.x)
-          {
-            if (it.delta.x > 0)
-              it.delta.x = max (it.delta.x - friction, 0);
-            else
-              it.delta.x = min (it.delta.x + friction, 0);
-            int inc = sgn (it.delta.x);
-            t_direction dir = (inc > 0) ? DIRECTION_RIGHT : DIRECTION_LEFT;
-            for (int i = 0; i < abs (it.delta.x); i++)
-              {
-                t_move move_result = canMoveTo (it.point, character, dir);
-                if (move_result == MOVE_OK)
-                  {
-                    it.point.x += inc;
-                  }
-                else
-                  {
-                    if (character->onCollision (0, DIRECTION_HORIZONTAL,
-                                                ITEM_PASSIVE, it.point,
-                                                it.delta) != COLLISION_IGNORE)
-                      {
-                        it.delta.x = 0;
-                      }
-                  }
-              }
-
-            if (it.type == ITEM_PLAYER)
-              {
-                if (it.point.x < 0)
-                  it.point.x = 0;
-                else if (it.point.x > level_width)
-                  it.point.x = level_width;
-              }
-          }
-
-        /* gravity */
-        t_move move_result = canMoveTo (it.point, character, DIRECTION_DOWN);
-        if (move_result == MOVE_OK)
-        {
-          it.delta.y = min (GlobalDefs::max_falling_speed,
-                            it.delta.y + gravity);
-          character->jumpId = max(1,character->jumpId);
-        }
-        else if (move_result == MOVE_DEATH)
-        {
-          character->onDestroy();
-        }
+        if (it.delta.x > 0)
+          it.delta.x = max (it.delta.x - friction, 0);
         else
-          character->jumpId = 0;
-
-        /* move vertical */
-        if (it.delta.y)
+          it.delta.x = min (it.delta.x + friction, 0);
+        int inc = sgn (it.delta.x);
+        t_direction dir = (inc > 0) ? DIRECTION_RIGHT : DIRECTION_LEFT;
+        for (int i = 0; i < abs (it.delta.x); i++)
+        {
+          t_move move_result = canMoveTo (it.point, character, dir);
+          if (move_result == MOVE_OK)
           {
-            int inc = sgn (it.delta.y);
-            t_direction dir = (inc > 0) ? DIRECTION_DOWN : DIRECTION_UP;
-            for (int i = 0; i < abs (it.delta.y); i++)
+            it.point.x += inc;
+          }
+          else
+          {
+            if (character->onCollision (0, DIRECTION_HORIZONTAL, ITEM_PASSIVE,
+                                        it.point, it.delta) != COLLISION_IGNORE)
             {
-              t_move move_result = canMoveTo (it.point, character, dir);
-              if (move_result == MOVE_OK)
-              {
-                it.point.y += inc;
-                if (!(character->jumpId < character->multipleJump()) && dir == DIRECTION_DOWN)
-                {
-                  if (!character->onJump)
-                  {
-                    character->onJump = JUMPING_TRIGGER;
-                  }
-                  else if (character->onJump < GlobalDefs::jump_sensitivity)
-                    character->onJump = GlobalDefs::jump_sensitivity;
-                }
-              }
-              else if (move_result == MOVE_DEATH)
-              {
-                character->onDestroy();
-              }
-              else
-              {
-                if (dir == DIRECTION_DOWN)
-                {
-                  if (character->onJump == JUMPING_TRIGGER)
-                  {
-                    character->jumpId = 0;
-                    character->onJump = JUMPING_RESET;
-                  }
-                  else if (character->onJump)
-                    character->onJump = (JUMPING_TRIGGER + 1);
-                }
-                if (character->onCollision (0, (t_direction) (DIRECTION_VERTICAL | dir),
-                      ITEM_PASSIVE, it.point, it.delta) == COLLISION_IGNORE)
-                    it.delta.y = 0;
-                break;
-              }
+              it.delta.x = 0;
             }
           }
-        /* move vertical */
+        }
 
-        if (it.type == ITEM_PLAYER && character->getStatus (STATUS_DYING))
+        if (it.type == ITEM_PLAYER)
         {
-          character->unsetStatus(STATUS_DYING);
-          character->setStatus(STATUS_LISTENING);
-          it.point = checkpoint;
-          it.delta = {0,0};
+          if (it.point.x < 0)
+            it.point.x = 0;
+          else if (it.point.x > level_width)
+            it.point.x = level_width;
         }
       }
+
+      /* gravity */
+      t_move move_result = canMoveTo (it.point, character, DIRECTION_DOWN);
+      if (move_result == MOVE_OK)
+      {
+        it.delta.y = min (GlobalDefs::max_falling_speed, it.delta.y + gravity);
+        character->jumpId = max (1, character->jumpId);
+      }
+      else if (move_result == MOVE_DEATH)
+      {
+        character->onDestroy ();
+      }
+      else
+        character->jumpId = 0;
+
+      /* move vertical */
+      if (it.delta.y)
+      {
+        int inc = sgn (it.delta.y);
+        t_direction dir = (inc > 0) ? DIRECTION_DOWN : DIRECTION_UP;
+        for (int i = 0; i < abs (it.delta.y); i++)
+        {
+          t_move move_result = canMoveTo (it.point, character, dir);
+          if (move_result == MOVE_OK)
+          {
+            it.point.y += inc;
+            if (!(character->jumpId < character->multipleJump ())
+                && dir == DIRECTION_DOWN)
+            {
+              if (!character->onJump)
+              {
+                character->onJump = JUMPING_TRIGGER;
+              }
+              else if (character->onJump < GlobalDefs::jump_sensitivity)
+                character->onJump = GlobalDefs::jump_sensitivity;
+            }
+          }
+          else if (move_result == MOVE_DEATH)
+          {
+            character->onDestroy ();
+          }
+          else
+          {
+            if (dir == DIRECTION_DOWN)
+            {
+              if (character->onJump == JUMPING_TRIGGER)
+              {
+                character->jumpId = 0;
+                character->onJump = JUMPING_RESET;
+              }
+              else if (character->onJump)
+                character->onJump = (JUMPING_TRIGGER + 1);
+            }
+            if (character->onCollision (
+                0, (t_direction) (DIRECTION_VERTICAL | dir), ITEM_PASSIVE,
+                it.point, it.delta) == COLLISION_IGNORE)
+              it.delta.y = 0;
+            break;
+          }
+        }
+      }
+      /* move vertical */
+
+      if (it.type == ITEM_PLAYER && character->getStatus (STATUS_DYING))
+      {
+        character->unsetStatus (STATUS_DYING);
+        character->setStatus (STATUS_LISTENING);
+        it.point = checkpoint;
+        it.delta = { 0,0};
+        return false;
+      }
+    }
+    return true;
   }
 
   t_direction reverseDirection (t_direction dir)
   {
     t_direction newdir = dir;
     if (dir & DIRECTION_LEFT)
-      {
-        newdir = (t_direction) ((newdir & ~DIRECTION_LEFT) | DIRECTION_RIGHT);
-      }
+    {
+      newdir = (t_direction) ((newdir & ~DIRECTION_LEFT) | DIRECTION_RIGHT);
+    }
     else if (dir & DIRECTION_RIGHT)
-      {
-        newdir = (t_direction) ((newdir & ~DIRECTION_RIGHT) | DIRECTION_LEFT);
-      }
+    {
+      newdir = (t_direction) ((newdir & ~DIRECTION_RIGHT) | DIRECTION_LEFT);
+    }
     if (dir & DIRECTION_UP)
-      {
-        newdir = (t_direction) ((newdir & ~DIRECTION_UP) | DIRECTION_DOWN);
-      }
+    {
+      newdir = (t_direction) ((newdir & ~DIRECTION_UP) | DIRECTION_DOWN);
+    }
     else if (dir & DIRECTION_DOWN)
-      {
-        newdir = (t_direction) ((newdir & ~DIRECTION_DOWN) | DIRECTION_UP);
-      }
+    {
+      newdir = (t_direction) ((newdir & ~DIRECTION_DOWN) | DIRECTION_UP);
+    }
     return newdir;
   }
 
   void LevelManager::update ()
   {
+    bool alive = true;
     /* update positions */
     for (size_t i = 0; i < items.size (); i++)
+    {
+      if (items[i].item->getStatus (STATUS_ALIVE))
       {
-        if (items[i].item->getStatus (STATUS_ALIVE))
-          {
-            updatePosition (items[i]);
-          }
-        else
-          {
-            delete items[i].item;
-            items.erase (items.begin () + i);
-            i--;
-          }
+        alive &= updatePosition (items[i]);
       }
+      else
+      {
+        delete items[i].item;
+        items.erase (items.begin () + i);
+        i--;
+      }
+    }
+
+    if (!alive)
+    {
+      vector<Player *> players;
+      for (itemInfo item : items)
+      {
+        if (item.type == ITEM_PLAYER)
+          players.push_back(dynamic_cast<Player *>(item.item));
+      }
+      loadLevelData(players);
+    }
 
     /* collision detection */
     t_direction collision_direction;
     for (size_t i = 0; i < items.size (); i++)
+    {
+      itemInfo & item1 = items[i];
+      if (!item1.item->getStatus (STATUS_LISTENING))
+        continue;
+      for (size_t j = i + 1; j < items.size (); j++)
       {
-        itemInfo & item1 = items[i];
-        if (!item1.item->getStatus (STATUS_LISTENING))
+        itemInfo & item2 = items[j];
+        if (!item2.item->getStatus (STATUS_LISTENING))
           continue;
-        for (size_t j = i + 1; j < items.size (); j++)
+        if (detectCollision (item1, item2, &collision_direction))
+        {
+          t_collision collision_result;
+          if (item1.type != ITEM_PASSIVE)
           {
-            itemInfo & item2 = items[j];
-            if (!item2.item->getStatus (STATUS_LISTENING))
-              continue;
-            if (detectCollision (item1, item2, &collision_direction))
-              {
-                t_collision collision_result;
-                if (item1.type != ITEM_PASSIVE)
-                  {
-                    collision_result =
-                        ((ActiveDrawable *) item1.item)->onCollision (
-                            item2.item, collision_direction, item2.type,
-                            item1.point, item1.delta, &item2.point,
-                            &item2.delta);
-                    if (collision_result == COLLISION_DIE)
-                      ((ActiveDrawable *) item1.item)->onDestroy ();
-                    if (collision_result == COLLISION_EXPLODE)
-                      {
-                        StaticAnimation * explosion = new StaticAnimation (
-                            renderer,
-                            GlobalDefs::getResource (RESOURCE_IMAGE,
-                                                     "explosion.png"),
-                            11, 0, 2, LIFESPAN_ONE_LOOP, 0);
-                        itemInfo explosion_info =
-                          { explosion, ITEM_PASSIVE, item1.point,
-                            { 0, 0 } };
-                        items.push_back (explosion_info);
-                        ((ActiveDrawable *) item1.item)->onDestroy ();
-                      }
-                  }
-                if (item2.type != ITEM_PASSIVE)
-                  {
-                    collision_result =
-                        ((ActiveDrawable *) item2.item)->onCollision (
-                            item1.item, reverseDirection (collision_direction),
-                            item1.type, item2.point, item2.delta, &item1.point,
-                            &item1.delta);
-                    if (collision_result == COLLISION_DIE)
-                      ((ActiveDrawable *) item2.item)->onDestroy ();
-                    if (collision_result == COLLISION_EXPLODE)
-                      {
-                        StaticAnimation * explosion = new StaticAnimation (
-                            renderer,
-                            GlobalDefs::getResource (RESOURCE_IMAGE,
-                                                     "explosion.png"),
-                            11, 0, 2, LIFESPAN_ONE_LOOP, 0);
-                        itemInfo explosion_info =
-                          { explosion, ITEM_PASSIVE, item2.point,
-                            { 0, 0 } };
-                        items.push_back (explosion_info);
-                        ((ActiveDrawable *) item2.item)->onDestroy ();
-                      }
-                  }
-              }
+            collision_result = ((ActiveDrawable *) item1.item)->onCollision (
+                item2.item, collision_direction, item2.type, item1.point,
+                item1.delta, &item2.point, &item2.delta);
+            if (collision_result == COLLISION_DIE)
+              ((ActiveDrawable *) item1.item)->onDestroy ();
+            if (collision_result == COLLISION_EXPLODE)
+            {
+              StaticAnimation * explosion = new StaticAnimation (
+                  renderer,
+                  GlobalDefs::getResource (RESOURCE_IMAGE, "explosion.png"), 11,
+                  0, 2, LIFESPAN_ONE_LOOP, 0);
+              itemInfo explosion_info =
+                { explosion, ITEM_PASSIVE, item1.point,
+                  { 0, 0 } };
+              items.push_back (explosion_info);
+              ((ActiveDrawable *) item1.item)->onDestroy ();
+            }
           }
+          if (item2.type != ITEM_PASSIVE)
+          {
+            collision_result = ((ActiveDrawable *) item2.item)->onCollision (
+                item1.item, reverseDirection (collision_direction), item1.type,
+                item2.point, item2.delta, &item1.point, &item1.delta);
+            if (collision_result == COLLISION_DIE)
+              ((ActiveDrawable *) item2.item)->onDestroy ();
+            if (collision_result == COLLISION_EXPLODE)
+            {
+              StaticAnimation * explosion = new StaticAnimation (
+                  renderer,
+                  GlobalDefs::getResource (RESOURCE_IMAGE, "explosion.png"), 11,
+                  0, 2, LIFESPAN_ONE_LOOP, 0);
+              itemInfo explosion_info =
+                { explosion, ITEM_PASSIVE, item2.point,
+                  { 0, 0 } };
+              items.push_back (explosion_info);
+              ((ActiveDrawable *) item2.item)->onDestroy ();
+            }
+          }
+        }
       }
+    }
   }
 
   void LevelManager::render ()
@@ -530,21 +595,21 @@ namespace jumpinjack
       xOffset = (level_width - GlobalDefs::window_size.x);
 
     for (BackgroundDrawable * bg : bg_layers)
-      {
-        bg->renderFixed (
-          { xOffset, 0 });
-      }
+    {
+      bg->renderFixed (
+        { xOffset, 0 });
+    }
     for (itemInfo & it : items)
-      {
-        int effectiveX = it.point.x - xOffset;
+    {
+      int effectiveX = it.point.x - xOffset;
 
-        if (effectiveX > -it.item->getWidth ()
-            && effectiveX < (GlobalDefs::window_size.x + it.item->getWidth ()))
-          {
-            t_point render_point =
-              { effectiveX, it.point.y };
-            it.item->renderFixed (render_point);
-          }
+      if (effectiveX > -it.item->getWidth ()
+          && effectiveX < (GlobalDefs::window_size.x + it.item->getWidth ()))
+      {
+        t_point render_point =
+          { effectiveX, it.point.y };
+        it.item->renderFixed (render_point);
       }
+    }
   }
 } /* namespace jumpinjack */

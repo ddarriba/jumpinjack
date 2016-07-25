@@ -25,6 +25,9 @@ namespace jumpinjack
     onJump = 0;
     jumpId = 0;
     n_jumps = 2;
+    att_gravity_effect = 1.0;
+
+    behavior_h_colision = BH_COLLISION_IGNORE_ALL;
   }
 
   ActiveDrawable::~ActiveDrawable ()
@@ -61,8 +64,14 @@ namespace jumpinjack
 	return att_speed;
   }
 
-  int ActiveDrawable::getJump() const {
-	return att_jump;
+  int ActiveDrawable::getJump() const
+  {
+    return att_jump;
+  }
+
+  double ActiveDrawable::getGravityEffect() const
+  {
+    return att_gravity_effect;
   }
 
   t_direction ActiveDrawable::getDirection() const {
@@ -73,7 +82,73 @@ namespace jumpinjack
 	direction = dir;
   }
 
+  void ActiveDrawable::turn ( void )
+  {
+      setDirection((direction == DIRECTION_RIGHT)?DIRECTION_LEFT:DIRECTION_RIGHT);
+  }
+
   int ActiveDrawable::multipleJump(void) const {
-	return n_jumps;
+    return n_jumps;
+  }
+
+  t_collision ActiveDrawable::defaultCollisionBehavior (Drawable * item,
+                                                        t_direction dir,
+                                                        t_itemtype type,
+                                                        t_point & point,
+                                                        t_point & delta,
+                                                        t_point * otherpoint,
+                                                        t_point * otherdelta)
+  {
+    int collision_result = COLLISION_IGNORE;
+    if (dir & DIRECTION_HORIZONTAL) //type != ITEM_PLAYER)
+    {
+      switch (type)
+      {
+        case ITEM_PASSIVE:
+          if (behavior_h_colision & BH_COLLISION_TURN_AT_PASSIVE)
+          {
+            turn ();
+            collision_result |= COLLISION_TURN;
+          }
+          else if (behavior_h_colision & BH_COLLISION_DIE_AT_PASSIVE)
+          {
+            collision_result = COLLISION_DIE;
+          }
+          break;
+        case ITEM_ENEMY:
+          if (behavior_h_colision & BH_COLLISION_TURN_AT_ACTIVE)
+          {
+            turn ();
+            collision_result |= COLLISION_TURN;
+          }
+          else if (behavior_h_colision & BH_COLLISION_DIE_AT_ACTIVE)
+          {
+            collision_result = COLLISION_DIE;
+          }
+          break;
+        case ITEM_PLAYER:
+          if (behavior_h_colision & BH_COLLISION_TURN_AT_PLAYER)
+          {
+            turn ();
+            collision_result |= COLLISION_TURN;
+          }
+          else if (behavior_h_colision & BH_COLLISION_DIE_AT_PLAYER)
+          {
+            collision_result = COLLISION_DIE;
+          }
+          break;
+        case ITEM_PROJECTILE:
+          collision_result = COLLISION_DIE;
+          break;
+      }
+    }
+
+    if (((dir & DIRECTION_UP) && type == ITEM_PLAYER)
+        || type == ITEM_PROJECTILE)
+    {
+      return COLLISION_DIE;
+      /* DIE */
+    }
+    return (t_collision) collision_result;
   }
 } /* namespace jumpinjack */

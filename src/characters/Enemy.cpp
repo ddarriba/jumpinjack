@@ -28,6 +28,9 @@ namespace jumpinjack
     att_speed = 5;
     direction = DIRECTION_LEFT;
     status_count = 0;
+
+    behavior_h_colision = (t_behavior_h_collision)
+        (BH_COLLISION_TURN_AT_PASSIVE);// | BH_COLLISION_DIE_AT_PLAYER);
   }
 
   Enemy::~Enemy ()
@@ -50,21 +53,10 @@ namespace jumpinjack
                                   t_point & delta, t_point * otherpoint,
                                   t_point * otherdelta)
   {
-    int collision_result = COLLISION_IGNORE;
-    if ((dir & DIRECTION_HORIZONTAL) && type != ITEM_PLAYER)
-    {
-      if (direction == DIRECTION_RIGHT)
-        direction = DIRECTION_LEFT;
-      else
-        direction = DIRECTION_RIGHT;
-      collision_result |= COLLISION_TURN;
-    }
-    if (((dir & DIRECTION_UP) && type == ITEM_PLAYER) ||
-          type == ITEM_PROJECTILE)
-    {
-      return COLLISION_DIE;
-      /* DIE */
-    }
+
+    /* default behavior */
+    t_collision collision_result = defaultCollisionBehavior(item, dir, type, point, delta, otherpoint, otherdelta);
+
     return (t_collision) collision_result;
   }
 

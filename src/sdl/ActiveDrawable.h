@@ -15,6 +15,16 @@
 namespace jumpinjack
 {
 
+  typedef enum {
+    BH_COLLISION_IGNORE_ALL      = 0,
+    BH_COLLISION_TURN_AT_PASSIVE = 1,
+    BH_COLLISION_TURN_AT_ACTIVE  = 2,
+    BH_COLLISION_TURN_AT_PLAYER  = 4,
+    BH_COLLISION_DIE_AT_PASSIVE  = 8,
+    BH_COLLISION_DIE_AT_ACTIVE   = 16,
+    BH_COLLISION_DIE_AT_PLAYER   = 32
+  } t_behavior_h_collision;
+
   class ActiveDrawable : public DrawableItem
   {
     public:
@@ -47,13 +57,23 @@ namespace jumpinjack
       int getAccel () const;
       int getSpeed () const;
       int getJump () const;
+      double getGravityEffect () const;
       t_direction getDirection () const;
       void setDirection (t_direction dir);
+      void turn ( void );
       int multipleJump( void ) const;
 
       int onJump;
       int jumpId;
     protected:
+      t_collision defaultCollisionBehavior (Drawable * item,
+                                            t_direction dir,
+                                            t_itemtype type,
+                                            t_point & point,
+                                            t_point & delta,
+                                            t_point * otherpoint = 0,
+                                            t_point * otherdelta = 0);
+
       SDL_Rect renderQuad;
 
       t_direction direction;
@@ -65,8 +85,12 @@ namespace jumpinjack
       int att_accel;
       int att_speed;
       int att_jump;
+      double att_gravity_effect;
 
       int n_jumps;
+
+      /* behavior */
+      t_behavior_h_collision behavior_h_colision;
   };
 
 } /* namespace jumpinjack */

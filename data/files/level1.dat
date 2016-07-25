@@ -1,12 +1,16 @@
-100 100 0 0
-100 100 0 0
-100 100 0 0
-100 100 0 0
+{100,100} {0,0}
+{100,100} {0,0}
+{100,100} {0,0}
+{100,100} {0,0}
 bg3.jpg 10 1  0
 bg2.png  2 1 10
 bg.png   1 0  0
 fg.png
-3
-img/enemies.png 8 0 2 ITEM_ENEMY {500,300} {0,0}
-img/enemies.png 8 0 2 ITEM_ENEMY {600,300} {0,0}
-img/enemies.png 8 0 2 ITEM_ENEMY {700,300} {0,0}
+7
+enemies.png 8 0 2 ITEM_ENEMY {500,300} {0,0}
+enemies.png 8 0 2 ITEM_ENEMY {800,300} {0,0}
+enemies.png 8 0 2 ITEM_ENEMY {1000,300} {0,0}
+enemies.png 8 0 2 ITEM_ENEMY {1200,300} {0,0}
+enemies.png 8 0 2 ITEM_ENEMY {2700,300} {0,0}
+enemies.png 8 0 2 ITEM_ENEMY {2900,300} {0,0}
+enemies.png 8 0 2 ITEM_ENEMY {3500,300} {0,0}

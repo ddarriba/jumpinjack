@@ -19,6 +19,7 @@ namespace jumpinjack
           power (power), rotation_speed (rotation_speed)
   {
     setDirection (direction);
+    att_gravity_effect = 1.0;
     float rad = shooting_angle * PI / 180;
     angle = shooting_angle;
     delta.x = (int) round (power * cos (rad));
@@ -72,11 +73,6 @@ namespace jumpinjack
               {
                 return COLLISION_TURN;
               }
-//            else if (dir & DIRECTION_DOWN)
-//              {
-//                setStatus (STATUS_DYING);
-//                return COLLISION_DIE;
-//              }
           }
         else if (dir & DIRECTION_HORIZONTAL)
           {
