@@ -4,7 +4,7 @@ INSTALLDIR = $(PWD)
 RESOURCESDIR = $(INSTALLDIR)/data
 
 CFLAGS = -g -O3 -Wall -std=c++11 -DRESOURCES_DIR=\"$(RESOURCESDIR)\"
-CPPLIBS = -lSDL2 -lSDL2_image -lSDL2_ttf
+CPPLIBS = -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer
 
 CPPFILES = $(wildcard **/*.cpp)
 CPPFILES = $(shell find src/ -type f -name '*.cpp')

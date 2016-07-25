@@ -6,7 +6,7 @@
  */
 
 #include "Drawable.h"
-#include<iostream>
+
 using namespace std;
 
 namespace jumpinjack

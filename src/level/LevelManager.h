@@ -11,6 +11,7 @@
 #include "Surface.h"
 #include "../GlobalDefs.h"
 #include "../sdl/BackgroundDrawable.h"
+#include "../sdl/SoundManager.h"
 #include "../characters/Player.h"
 
 #define PARALLAX_LAYERS 3
@@ -75,6 +76,7 @@ namespace jumpinjack
       void loadLevelData(std::vector<Player *> & players);
 
       SDL_Renderer * renderer;
+      SoundManager * sound_manager;
 
       int level_id;
       int level_width;
@@ -86,6 +88,8 @@ namespace jumpinjack
       t_point checkpoint;
       t_level_data level_data;
 
+      unsigned long sound_jump;
+      unsigned long sound_shoot;
   };
 
 } /* namespace jumpinjack */

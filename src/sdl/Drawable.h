@@ -48,9 +48,11 @@ namespace jumpinjack
       void setBlendMode (SDL_BlendMode blending);
       void setAlpha (Uint8 alpha);
 
-      virtual void render (t_point point, t_dim size, SDL_Rect * clip = NULL,
-                           SDL_RendererFlip flip = SDL_FLIP_NONE, double angle =
-                               0.0,
+      virtual void render (t_point point,
+                           t_dim size,
+                           SDL_Rect * clip = NULL,
+                           SDL_RendererFlip flip = SDL_FLIP_NONE,
+                           double angle = 0.0,
                            t_point * center = NULL);
       virtual void renderFixed (t_point point) {};
 
@@ -77,6 +79,6 @@ namespace jumpinjack
       static std::map<std::string, graphicInfo> cachedSurfaces;
   };
 
-} /* namespace fwsdl */
+} /* namespace jumpinjack */
 
 #endif /* DRAWABLE_H_ */

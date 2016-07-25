@@ -167,6 +167,10 @@ namespace jumpinjack
     loadLevelData(players);
 
     level_width = 4000;
+
+    sound_manager = new SoundManager();
+    sound_jump  = sound_manager->loadFromFile("data/sound/jump001.wav");
+    sound_shoot = sound_manager->loadFromFile("data/sound/shoot001.wav");
   }
 
   LevelManager::~LevelManager ()
@@ -177,6 +181,7 @@ namespace jumpinjack
     for (BackgroundDrawable * bg : bg_layers)
       delete bg;
     delete level_surface;
+    delete sound_manager;
   }
 
   void LevelManager::applyAction (int player_id, t_action action)
@@ -224,6 +229,7 @@ namespace jumpinjack
       itemInfo shoot_info =
         { projectile, ITEM_PROJECTILE, point, delta };
       items.push_back (shoot_info);
+      sound_manager->playSound(sound_shoot);
     }
     if (!run && !player_info.delta.x)
       player->setState (PLAYER_STAND);
@@ -234,8 +240,9 @@ namespace jumpinjack
 
         if ((player->jumpId < player->multipleJump ()) && !player->onJump)
         {
-          player->jumpId++;
           player_info.delta.y = 0;
+          player->jump();
+          sound_manager->playSound(sound_jump);
         }
 
         /* ignore gravity when jumping */

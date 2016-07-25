@@ -20,7 +20,7 @@ namespace jumpinjack
   {
     current_state = PLAYER_RUN;
     att_accel = 5;
-    att_jump = 20;
+    att_jump  = 20;
     att_speed = 15;
   }
 
@@ -140,5 +140,10 @@ namespace jumpinjack
   {
     if (!getStatus(STATUS_UNTOUCHABLE) || !((hit_counter/3)%2))
       ActiveDrawable::renderFixed (point);
+  }
+
+  void Player::jump()
+  {
+    jumpId++;
   }
 } /* namespace sdlfw */

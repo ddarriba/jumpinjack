@@ -51,6 +51,8 @@ namespace jumpinjack
 
       virtual void renderFixed (t_point point);
 
+      void jump();
+
     private:
       playerState current_state;
   };
