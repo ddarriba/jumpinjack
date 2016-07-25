@@ -330,15 +330,15 @@ namespace jumpinjack
                         t_direction * collision_direction)
   {
     t_point min1 =
-      { it1.point.x - it1.item->getWidth () / 2, it1.point.y
+      { it1.point.x - it1.item->getWidth () / 3, it1.point.y
           - it1.item->getHeight () };
     t_point max1 =
-      { it1.point.x + it1.item->getWidth () / 2, it1.point.y };
+      { it1.point.x + it1.item->getWidth () / 3, it1.point.y };
     t_point min2 =
-      { it2.point.x - it2.item->getWidth () / 2, it2.point.y
+      { it2.point.x - it2.item->getWidth () / 3, it2.point.y
           - it2.item->getHeight () };
     t_point max2 =
-      { it2.point.x + it2.item->getWidth () / 2, it2.point.y };
+      { it2.point.x + it2.item->getWidth () / 3, it2.point.y };
     if (min2.x > max1.x || min1.x > max2.x || min2.y > max1.y
         || min1.y > max2.y)
       return false;
