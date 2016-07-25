@@ -9,7 +9,7 @@
 #include "../characters/Enemy.h"
 #include <sstream>
 #include <fstream>
-#include "../items/Projectile.h"
+#include "../items/Gunshot.h"
 #include "../items/StaticAnimation.h"
 
 using namespace std;
@@ -228,9 +228,9 @@ namespace jumpinjack
       else
         point.x -= 50;
       t_point delta;
-      Projectile * projectile = new Projectile (
-          renderer, GlobalDefs::getResource (RESOURCE_IMAGE, "projectile.png"),
-          player->getDirection (), delta, 60, 30);
+      Projectile * projectile = new Gunshot (
+          renderer, GlobalDefs::getResource (RESOURCE_IMAGE, "bullet.png"),
+          player->getDirection (), delta, 0, 40, 0, 750);
       itemInfo shoot_info =
         { projectile, ITEM_PROJECTILE, point, delta };
       items.push_back (shoot_info);
@@ -330,15 +330,15 @@ namespace jumpinjack
                         t_direction * collision_direction)
   {
     t_point min1 =
-      { it1.point.x - it1.item->getWidth () / 4, it1.point.y
+      { it1.point.x - it1.item->getWidth () / 2, it1.point.y
           - it1.item->getHeight () };
     t_point max1 =
-      { it1.point.x + it1.item->getWidth () / 4, it1.point.y };
+      { it1.point.x + it1.item->getWidth () / 2, it1.point.y };
     t_point min2 =
-      { it2.point.x - it2.item->getWidth () / 4, it2.point.y
+      { it2.point.x - it2.item->getWidth () / 2, it2.point.y
           - it2.item->getHeight () };
     t_point max2 =
-      { it2.point.x + it2.item->getWidth () / 4, it2.point.y };
+      { it2.point.x + it2.item->getWidth () / 2, it2.point.y };
     if (min2.x > max1.x || min1.x > max2.x || min2.y > max1.y
         || min1.y > max2.y)
       return false;
@@ -396,10 +396,23 @@ namespace jumpinjack
           }
           else
           {
-            if (character->onCollision (0, DIRECTION_HORIZONTAL, ITEM_PASSIVE,
-                                        it.point, it.delta) != COLLISION_IGNORE)
+            t_collision collision_result = character->onCollision (0, DIRECTION_HORIZONTAL, ITEM_PASSIVE,
+                                        it.point, it.delta);
+            if (collision_result != COLLISION_IGNORE)
             {
               it.delta.x = 0;
+              if (collision_result == COLLISION_EXPLODE)
+              {
+                StaticAnimation * explosion = new StaticAnimation (
+                    renderer,
+                    GlobalDefs::getResource (RESOURCE_IMAGE, "explosion.png"), 11,
+                    0, 2, LIFESPAN_ONE_LOOP, 0);
+                itemInfo explosion_info =
+                  { explosion, ITEM_PASSIVE, it.point,
+                    { 0, 0 } };
+                items.push_back (explosion_info);
+                ((ActiveDrawable *) it.item)->onDestroy ();
+              }
             }
           }
         }

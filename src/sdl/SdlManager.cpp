@@ -25,6 +25,7 @@ namespace jumpinjack
 
   SdlManager::~SdlManager ()
   {
+
     SDL_DestroyRenderer (renderer);
     SDL_DestroyWindow (window);
 
@@ -70,9 +71,10 @@ namespace jumpinjack
           }
         else
           {
-            //Create window icon
-            window_icon = IMG_Load("data/img/icon.png");
+            //Set window icon
+            SDL_Surface * window_icon = IMG_Load("data/img/icon.png");
             SDL_SetWindowIcon(window, window_icon);
+            SDL_FreeSurface(window_icon);
 
             //Create vsynced renderer for window
             renderer = SDL_CreateRenderer (
@@ -108,9 +110,6 @@ namespace jumpinjack
         TTF_GetError ());
         success = false;
       }
-
-    menu_screen = IMG_Load("data/img/bg.png");
-    assert (menu_screen);
 
     return success;
   }

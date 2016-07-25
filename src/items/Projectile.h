@@ -30,7 +30,7 @@ namespace jumpinjack
                                        t_point * otherdelta = 0);
       virtual void update (SDL_Point & next_point);
 
-    private:
+    protected:
       unsigned int start_ticks; /* starting time */
       unsigned int lifespan;    /* time (millis) the projectile is alive */
       int power;                /* shoot power (speed) */
