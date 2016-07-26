@@ -9,6 +9,7 @@
 #define CHARACTERS_PLAYER_H_
 
 #include "../sdl/ActiveDrawable.h"
+#include "../items/Projectile.h"
 
 namespace jumpinjack
 {
@@ -51,6 +52,7 @@ namespace jumpinjack
 
       virtual void renderFixed (t_point point);
 
+      Projectile * createProjectile(t_point & delta) const;
       void jump();
 
     private:

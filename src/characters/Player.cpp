@@ -6,6 +6,7 @@
  */
 
 #include "Player.h"
+#include "../items/Gunshot.h"
 
 using namespace std;
 
@@ -146,5 +147,14 @@ namespace jumpinjack
   void Player::jump()
   {
     jumpId++;
+  }
+
+  Projectile * Player::createProjectile(t_point & delta) const
+  {
+    return new Gunshot (
+        renderer,
+        GlobalDefs::getResource (RESOURCE_IMAGE, "bullet.png"),
+        getDirection (),
+        delta, 0, 60, 0, 750);
   }
 } /* namespace sdlfw */

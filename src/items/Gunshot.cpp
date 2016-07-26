@@ -30,6 +30,7 @@ namespace jumpinjack
       }
     delta.y = (int) -round (power * sin (rad));
     start_ticks = SDL_GetTicks ();
+
   }
 
   Gunshot::~Gunshot ()
@@ -50,10 +51,7 @@ namespace jumpinjack
     else
     {
       unsetStatus (STATUS_ALIVE);
-      if (type == ITEM_ENEMY)
-        collision_result = COLLISION_EXPLODE;
-      else
-        collision_result = COLLISION_DIE;
+      collision_result = COLLISION_DIE;
     }
 
     return collision_result;

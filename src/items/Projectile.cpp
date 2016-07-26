@@ -15,7 +15,7 @@ namespace jumpinjack
                           t_direction direction, t_point & delta,
                           int shooting_angle, int power, int rotation_speed,
                           int lifespan) :
-          ActiveDrawable (renderer, sprite_file, 1, 0, 1), lifespan (lifespan),
+          ActiveDrawable (renderer, sprite_file, 10, 0, 1), lifespan (lifespan),
           power (power), rotation_speed (rotation_speed)
   {
     setDirection (direction);
@@ -42,9 +42,14 @@ namespace jumpinjack
 
   void Projectile::onDestroy (void)
   {
+    if (getStatus (STATUS_DYING))
+      return;
+
     /* switch sprite */
     unsetStatus (STATUS_LISTENING);
     setStatus (STATUS_DYING);
+    sprite_line = 1;
+    status_count = 0;
   }
 
   t_collision Projectile::onCollision (Drawable * item, t_direction dir,
@@ -90,25 +95,29 @@ namespace jumpinjack
   {
     if (getStatus (STATUS_DYING))
       {
-        unsetStatus (STATUS_ALIVE);
+        status_count++;
+        if (status_count >= 10)
+        {
+          unsetStatus (STATUS_ALIVE);
+        }
       }
     else
+    {
+      if (direction == DIRECTION_RIGHT)
       {
-        if (direction == DIRECTION_RIGHT)
-          {
-            next_point.x += 2;
-            angle += rotation_speed;
-          }
-        else
-          {
-            next_point.x -= 2;
-            angle -= rotation_speed;
-          }
+        next_point.x += 2;
+        angle += rotation_speed;
       }
-    if (SDL_GetTicks () - start_ticks > lifespan)
+      else
+      {
+        next_point.x -= 2;
+        angle -= rotation_speed;
+      }
+      if (SDL_GetTicks () - start_ticks > lifespan)
       {
         setStatus (STATUS_DYING);
       }
+    }
 
     ActiveDrawable::update(next_point);
   }

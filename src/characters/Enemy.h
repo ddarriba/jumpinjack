@@ -36,7 +36,6 @@ namespace jumpinjack
       virtual t_collision getCollisionEffect (t_itemtype type,
                                               t_direction dir) const;
   private:
-    int status_count;
     std::vector<Behavior *> behavior;
   };
 

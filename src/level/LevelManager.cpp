@@ -17,6 +17,8 @@ using namespace std;
 namespace jumpinjack
 {
 
+  t_direction reverseDirection (t_direction dir);
+
   static void parse_level_file(int level_id, int n_players, t_level_data & level_data)
   {
     stringstream ss;
@@ -125,7 +127,10 @@ namespace jumpinjack
     for (Player * player : players)
     {
       items.push_back (
-            { player, ITEM_PLAYER, level_data.player_start_point[i],
+            { player, ITEM_PLAYER,
+                level_data.player_start_point[i],
+                level_data.player_start_delta[i],
+                level_data.player_start_point[i],
                 level_data.player_start_delta[i] });
       checkpoint = level_data.player_start_point[i];
       ++i;
@@ -148,6 +153,7 @@ namespace jumpinjack
                 { new Enemy (renderer, item_desc.sprite_filename,
                              item_desc.sprite_len, item_desc.sprite_start,
                              item_desc.sprite_speed), ITEM_ENEMY,
+                    item_desc.start_point, item_desc.start_delta,
                     item_desc.start_point, item_desc.start_delta });
           break;
         default:
@@ -226,16 +232,13 @@ namespace jumpinjack
     if (action & ACTION_SHOOT)
     {
       t_point point = player_info.point;
-      if (player->getDirection () == DIRECTION_RIGHT)
-        point.x += 50;
-      else
-        point.x -= 50;
+      point.y -= player->getHeight()/2;
       t_point delta;
-      Projectile * projectile = new Gunshot (
-          renderer, GlobalDefs::getResource (RESOURCE_IMAGE, "bullet.png"),
-          player->getDirection (), delta, 0, 40, 0, 750);
       itemInfo shoot_info =
-        { projectile, ITEM_PROJECTILE, point, delta };
+        { player->createProjectile(delta),
+          ITEM_PROJECTILE,
+          point, delta,
+          point, delta };
       items.push_back (shoot_info);
       sound_manager->playSound(sound_shoot);
     }
@@ -366,130 +369,174 @@ namespace jumpinjack
     }
   }
 
+  void LevelManager::collide(ActiveDrawable * character,
+                             Drawable * item,
+                             t_direction direction,
+                             t_itemtype type,
+                             t_point & point,
+                             t_point & delta,
+                             t_point * otherpoint,
+                             t_point * otherdelta)
+  {
+    t_collision collision_result = character->onCollision (item,
+                                                       direction,
+                                                       type,
+                                                       point, delta,
+                                                       otherpoint, otherdelta);
+
+    if (direction & DIRECTION_HORIZONTAL) delta.x = 0;
+    if (direction & DIRECTION_VERTICAL) delta.y = (direction & DIRECTION_UP)?2:0;
+
+    if (collision_result != COLLISION_IGNORE)
+    {
+      switch (collision_result)
+      {
+        case COLLISION_EXPLODE:
+        {
+          StaticAnimation * explosion = new StaticAnimation (
+              renderer,
+              GlobalDefs::getResource (RESOURCE_IMAGE, "explosion.png"), 11,
+              0, 2, LIFESPAN_ONE_LOOP, 0);
+          itemInfo explosion_info =
+            { explosion, ITEM_PASSIVE, point,
+              { 0, 0 }, point,
+                { 0, 0 } };
+          items.push_back (explosion_info);
+          character->onDestroy ();
+          break;
+        }
+        case COLLISION_DIE:
+          character->onDestroy ();
+          break;
+        case COLLISION_TURN:
+          character->setDirection(
+            reverseDirection(character->getDirection()));
+        default:
+          /* ignore */
+          break;
+      }
+    }
+  }
+
   bool LevelManager::updatePosition (itemInfo & it)
   {
     int friction = GlobalDefs::base_friction;
     int gravity = GlobalDefs::base_gravity;
+    it.next_delta = it.delta;
+    it.next_point = it.point;
+    it.item->update (it.next_delta);
 
-    if (it.type == ITEM_PASSIVE)
-    {
-      it.item->update (it.delta);
-    }
-    else
+    if (it.type != ITEM_PASSIVE)
     {
       gravity = (int) round(gravity * dynamic_cast<ActiveDrawable *>(it.item)->getGravityEffect());
       ActiveDrawable * character = (ActiveDrawable *) it.item;
-      character->update (it.delta);
+      character->update (it.next_delta);
 
       /* move horizontal */
-      if (it.delta.x)
+      if (it.next_delta.x)
       {
-        if (it.delta.x > 0)
-          it.delta.x = max (it.delta.x - friction, 0);
+        if (it.next_delta.x > 0)
+          it.next_delta.x = max (it.next_delta.x - friction, 0);
         else
-          it.delta.x = min (it.delta.x + friction, 0);
-        int inc = sgn (it.delta.x);
+          it.next_delta.x = min (it.next_delta.x + friction, 0);
+        int inc = sgn (it.next_delta.x);
         t_direction dir = (inc > 0) ? DIRECTION_RIGHT : DIRECTION_LEFT;
-        for (int i = 0; i < abs (it.delta.x); i++)
+        bool goloop = true;
+        for (int i = 0; goloop && i < abs (it.delta.x); i++)
         {
-          t_move move_result = canMoveTo (it.point, character, dir);
-          if (move_result == MOVE_OK)
+          t_move move_result = canMoveTo (it.next_point, character, dir);
+          switch (move_result)
           {
-            it.point.x += inc;
-          }
-          else if (move_result == MOVE_DEATH)
-          {
+          case MOVE_OK:
+            it.next_point.x += inc;
+            break;
+          case MOVE_DEATH:
             character->onDestroy ();
-          }
-          else
-          {
-            t_collision collision_result = character->onCollision (0, DIRECTION_HORIZONTAL, ITEM_PASSIVE,
-                                        it.point, it.delta);
-            if (collision_result != COLLISION_IGNORE)
-            {
-              it.delta.x = 0;
-              if (collision_result == COLLISION_EXPLODE)
-              {
-                StaticAnimation * explosion = new StaticAnimation (
-                    renderer,
-                    GlobalDefs::getResource (RESOURCE_IMAGE, "explosion.png"), 11,
-                    0, 2, LIFESPAN_ONE_LOOP, 0);
-                itemInfo explosion_info =
-                  { explosion, ITEM_PASSIVE, it.point,
-                    { 0, 0 } };
-                items.push_back (explosion_info);
-                ((ActiveDrawable *) it.item)->onDestroy ();
-              }
-            }
+            return true;
+            break;
+          case MOVE_NOT:
+            collide(character, 0,
+                    DIRECTION_HORIZONTAL, ITEM_PASSIVE,
+                    it.next_point, it.next_delta);
+            goloop = false;
+            break;
           }
         }
 
         if (it.type == ITEM_PLAYER)
         {
-          if (it.point.x < 0)
-            it.point.x = 0;
-          else if (it.point.x > level_width)
-            it.point.x = level_width;
+          if (it.next_point.x < 0)
+            it.next_point.x = 0;
+          else if (it.next_point.x > level_width)
+            it.next_point.x = level_width;
         }
       }
 
       /* gravity */
-      t_move move_result = canMoveTo (it.point, character, DIRECTION_DOWN);
+      t_move move_result = canMoveTo (it.next_point, character, DIRECTION_DOWN);
       if (move_result == MOVE_OK)
       {
-        it.delta.y = min (GlobalDefs::max_falling_speed, it.delta.y + gravity);
+        it.next_delta.y = min (GlobalDefs::max_falling_speed, it.next_delta.y + gravity);
         character->jumpId = max (1, character->jumpId);
       }
       else if (move_result == MOVE_DEATH)
       {
         character->onDestroy ();
+        return true;
       }
       else
         character->jumpId = 0;
 
       /* move vertical */
-      if (it.delta.y)
+      if (it.next_delta.y)
       {
         int inc = sgn (it.delta.y);
         t_direction dir = (inc > 0) ? DIRECTION_DOWN : DIRECTION_UP;
-        for (int i = 0; i < abs (it.delta.y); i++)
+        bool goloop = true;
+        for (int i = 0; goloop && i < abs (it.next_delta.y); i++)
         {
-          t_move move_result = canMoveTo (it.point, character, dir);
-          if (move_result == MOVE_OK)
+          t_move move_result = canMoveTo (it.next_point, character, dir);
+          switch (move_result)
           {
-            it.point.y += inc;
-            if (!(character->jumpId < character->multipleJump ())
-                && dir == DIRECTION_DOWN)
+            case MOVE_OK:
             {
-              if (!character->onJump)
+              it.next_point.y += inc;
+              if (!(character->jumpId < character->multipleJump ())
+                  && dir == DIRECTION_DOWN)
               {
-                character->onJump = JUMPING_TRIGGER;
+                if (!character->onJump)
+                {
+                  character->onJump = JUMPING_TRIGGER;
+                }
+                else if (character->onJump < GlobalDefs::jump_sensitivity)
+                  character->onJump = GlobalDefs::jump_sensitivity;
               }
-              else if (character->onJump < GlobalDefs::jump_sensitivity)
-                character->onJump = GlobalDefs::jump_sensitivity;
+              break;
             }
-          }
-          else if (move_result == MOVE_DEATH)
-          {
-            character->onDestroy ();
-          }
-          else
-          {
-            if (dir == DIRECTION_DOWN)
+            case MOVE_DEATH:
+              character->onDestroy ();
+              break;
+            case MOVE_NOT:
             {
-              if (character->onJump == JUMPING_TRIGGER)
+              if (dir == DIRECTION_DOWN)
               {
-                character->jumpId = 0;
-                character->onJump = JUMPING_RESET;
+                if (character->onJump == JUMPING_TRIGGER)
+                {
+                  character->jumpId = 0;
+                  character->onJump = JUMPING_RESET;
+                }
+                else if (character->onJump)
+                  character->onJump = (JUMPING_TRIGGER + 1);
               }
-              else if (character->onJump)
-                character->onJump = (JUMPING_TRIGGER + 1);
+
+              collide(character, 0,
+                      (t_direction) (DIRECTION_VERTICAL | dir),
+                      ITEM_PASSIVE,
+                      it.next_point,
+                      it.next_delta);
+              goloop = false;
+              break;
             }
-            if (character->onCollision (
-                0, (t_direction) (DIRECTION_VERTICAL | dir), ITEM_PASSIVE,
-                it.point, it.delta) == COLLISION_IGNORE)
-              it.delta.y = 0;
-            break;
           }
         }
       }
@@ -499,8 +546,8 @@ namespace jumpinjack
       {
         character->unsetStatus (STATUS_DYING);
         character->setStatus (STATUS_LISTENING);
-        it.point = checkpoint;
-        it.delta = { 0,0};
+        it.next_point = checkpoint;
+        it.next_delta = { 0,0};
         return false;
       }
     }
@@ -532,6 +579,7 @@ namespace jumpinjack
   void LevelManager::update ()
   {
     bool alive = true;
+
     /* update positions */
     for (size_t i = 0; i < items.size (); i++)
     {
@@ -572,49 +620,29 @@ namespace jumpinjack
           continue;
         if (detectCollision (item1, item2, &collision_direction))
         {
-          t_collision collision_result;
           if (item1.type != ITEM_PASSIVE)
           {
-            collision_result = ((ActiveDrawable *) item1.item)->onCollision (
-                item2.item, collision_direction, item2.type, item1.point,
-                item1.delta, &item2.point, &item2.delta);
-            if (collision_result == COLLISION_DIE)
-              ((ActiveDrawable *) item1.item)->onDestroy ();
-            if (collision_result == COLLISION_EXPLODE)
-            {
-              StaticAnimation * explosion = new StaticAnimation (
-                  renderer,
-                  GlobalDefs::getResource (RESOURCE_IMAGE, "explosion.png"), 11,
-                  0, 2, LIFESPAN_ONE_LOOP, 0);
-              itemInfo explosion_info =
-                { explosion, ITEM_PASSIVE, item1.point,
-                  { 0, 0 } };
-              items.push_back (explosion_info);
-              ((ActiveDrawable *) item1.item)->onDestroy ();
-            }
+            collide((ActiveDrawable *)item1.item, item2.item, collision_direction,
+                    item2.type, item1.point, item1.delta,
+                    &item2.point, &item2.delta);
           }
           if (item2.type != ITEM_PASSIVE)
           {
-            collision_result = ((ActiveDrawable *) item2.item)->onCollision (
-                item1.item, reverseDirection (collision_direction), item1.type,
-                item2.point, item2.delta, &item1.point, &item1.delta);
-            if (collision_result == COLLISION_DIE)
-              ((ActiveDrawable *) item2.item)->onDestroy ();
-            if (collision_result == COLLISION_EXPLODE)
-            {
-              StaticAnimation * explosion = new StaticAnimation (
-                  renderer,
-                  GlobalDefs::getResource (RESOURCE_IMAGE, "explosion.png"), 11,
-                  0, 2, LIFESPAN_ONE_LOOP, 0);
-              itemInfo explosion_info =
-                { explosion, ITEM_PASSIVE, item2.point,
-                  { 0, 0 } };
-              items.push_back (explosion_info);
-              ((ActiveDrawable *) item2.item)->onDestroy ();
-            }
+            collide((ActiveDrawable *)item2.item, item1.item,
+                    reverseDirection (collision_direction),
+                    item1.type,
+                    item2.point, item2.delta,
+                    &item1.point, &item1.delta);
           }
         }
       }
+    }
+
+    /* update positions */
+    for (size_t i = 0; i < items.size (); i++)
+    {
+        items[i].point = items[i].next_point;
+        items[i].delta = items[i].next_delta;
     }
   }
 

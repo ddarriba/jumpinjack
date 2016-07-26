@@ -51,6 +51,8 @@ namespace jumpinjack
   {
     unsetStatus (STATUS_LISTENING);
     setStatus (STATUS_DYING);
+    sprite_line = 1;
+    status_count = 0;
   }
 
   t_collision Enemy::onCollision (Drawable * item,
@@ -82,7 +84,6 @@ namespace jumpinjack
     if (getStatus (STATUS_DYING))
     {
       status_count++;
-      //*y += 10;
       if (status_count >= 10)
       {
         unsetStatus (STATUS_ALIVE);

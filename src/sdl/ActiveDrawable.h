@@ -91,6 +91,7 @@ namespace jumpinjack
 
       /* behavior */
       t_behavior_h_collision behavior_h_colision;
+      int status_count;
   };
 
 } /* namespace jumpinjack */
