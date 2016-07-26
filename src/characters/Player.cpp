@@ -22,6 +22,7 @@ namespace jumpinjack
     att_accel = 5;
     att_jump  = 20;
     att_speed = 15;
+    direction = DIRECTION_RIGHT;
   }
 
   Player::~Player ()

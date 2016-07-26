@@ -7,6 +7,8 @@
 
 #include "InGameMenu.h"
 
+#define CHECK_MOUSE_WIDTH 0
+
 namespace jumpinjack
 {
 
@@ -18,18 +20,20 @@ namespace jumpinjack
   InGameMenu::InGameMenu (SDL_Renderer * renderer) :
       Drawable(renderer, 100, false)
   {
+    selected_option = 0;
+
     options.reserve (4);
     options.push_back (
-      { "continue", MENU_CONTINUE, 0,
+      { 0, "continue", MENU_CONTINUE, 0,
         { 0, 0, 0, 0 } });
     options.push_back (
-      { "back to main", MENU_MAIN, 0,
+      { 1, "back to main", MENU_MAIN, 0,
         { 0, 0, 0, 0 } });
     options.push_back (
-      { "set controls", MENU_SET_CONTROLS, 0,
+      { 2, "set controls", MENU_SET_CONTROLS, 0,
         { 0, 0, 0, 0 } });
     options.push_back (
-      { "exit game", MENU_EXIT, 0,
+      { 3, "exit game", MENU_EXIT, 0,
         { 0, 0, 0, 0 } });
 
     int yMenuOffset = 50;
@@ -41,7 +45,6 @@ namespace jumpinjack
         op.quad.y = yMenuOffset;
         op.quad.w = op.texture->getWidth ();
         op.quad.h = op.texture->getHeight ();
-        op.selected = false;
         yMenuOffset += op.quad.h;
       }
 
@@ -73,20 +76,11 @@ namespace jumpinjack
                 y = event.motion.y;
                 for (t_option & op : options)
                   {
-                    if (x >= op.quad.x && x <= op.quad.x + op.quad.w
-                        && y >= op.quad.y && y <= op.quad.y + op.quad.h)
+                    if ((!CHECK_MOUSE_WIDTH ||
+                        (x >= op.quad.x && x <= op.quad.x + op.quad.w)) &&  /* check width */
+                        y >= op.quad.y && y <= op.quad.y + op.quad.h)
                       {
-                        if (!op.selected)
-                          {
-                            op.selected = true;
-                          }
-                      }
-                    else
-                      {
-                        if (op.selected)
-                          {
-                            op.selected = false;
-                          }
+                        selected_option = op.id;
                       }
                   }
                 break;
@@ -95,18 +89,32 @@ namespace jumpinjack
                 y = event.button.y;
                 for (t_option & op : options)
                   {
-                    if (x >= op.quad.x && x <= op.quad.x + op.quad.w
-                        && y >= op.quad.y && y <= op.quad.y + op.quad.h)
+                    if ((!CHECK_MOUSE_WIDTH ||
+                        (x >= op.quad.x && x <= op.quad.x + op.quad.w)) &&
+                        y >= op.quad.y && y <= op.quad.y + op.quad.h)
                       {
                         return_val = op.action;
                       }
                   }
                 break;
               case SDL_KEYDOWN:
-                if (event.key.keysym.sym == SDLK_ESCAPE)
-                  {
+                switch (event.key.keysym.sym)
+                {
+                  case SDLK_UP:
+                    selected_option += options.size() - 1;
+                    selected_option %= options.size();
+                    break;
+                  case SDLK_DOWN:
+                    selected_option ++;
+                    selected_option %= options.size();
+                    break;
+                  case SDLK_ESCAPE:
                     return_val = MENU_CONTINUE;
-                  }
+                    break;
+                  case SDLK_RETURN:
+                    return_val = options[selected_option].action;
+                    break;
+                }
                 break;
               }
           }
@@ -114,7 +122,7 @@ namespace jumpinjack
         for (t_option & op : options)
           {
             op.texture->loadFromRenderedText (op.option_text,
-                                              color[op.selected ? 1 : 0]);
+                                              color[op.id == selected_option]);
           }
 
         if (return_val == MENU_CONTINUE)

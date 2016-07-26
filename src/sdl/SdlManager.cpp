@@ -51,6 +51,10 @@ namespace jumpinjack
       }
     else
       {
+      for (int i = 0; i < SDL_GetNumAudioDrivers(); ++i) {
+          printf("%s\n", SDL_GetAudioDriver(i));
+        }
+
         //Set texture filtering to linear
         if (!SDL_SetHint ( SDL_HINT_RENDER_SCALE_QUALITY, "1"))
           {

@@ -9,15 +9,19 @@ SoundManager::SoundManager ()
 {
   /* first assigned will be number 1 */
   next_sound_id = 0;
+  audio_ok = true;
 
   //Initialize SDL_mixer
-  int frequency = 22050;
+  int frequency = 44100;
   Uint16 format = MIX_DEFAULT_FORMAT;
   int channels  = 2;
-  int chunksize = 4096;
+  int chunksize = 2048;
+
   if( Mix_OpenAudio( frequency, format, channels, chunksize ) == -1 )
   {
-      printf("ERROR INITIALIZING SOUND!\n");
+    audio_ok = false;
+    cerr << "Error initializing sound: " << Mix_GetError() << endl;
+    cerr << "Sound disabled" << endl;
   }
 }
 
@@ -29,6 +33,9 @@ SoundManager::~SoundManager ()
 
 unsigned long SoundManager::loadFromFile (const string & path)
 {
+  if (!audio_ok)
+    return 0;
+
   ++next_sound_id;
   Mix_Chunk * new_sound = Mix_LoadWAV( path.c_str() );
   if (new_sound == NULL)
@@ -44,6 +51,9 @@ unsigned long SoundManager::loadFromFile (const string & path)
 
 unsigned long SoundManager::loadMusic (const string & path)
 {
+  if (!audio_ok)
+    return 0;
+
   ++next_sound_id;
   Mix_Music * new_music = Mix_LoadMUS ( path.c_str() );
   if (new_music == NULL)
@@ -59,7 +69,7 @@ unsigned long SoundManager::loadMusic (const string & path)
 
 void SoundManager::playMusic(unsigned int sound_id, int loops)
 {
-  if( Mix_PlayMusic(cachedMusic[sound_id], loops) == -1 )
+  if( audio_ok && Mix_PlayMusic(cachedMusic[sound_id], loops) == -1 )
   {
     printf("ERROR PLAYING MUSIC\n");
   }
@@ -67,17 +77,21 @@ void SoundManager::playMusic(unsigned int sound_id, int loops)
 
 void SoundManager::setMusicVolume(int volume)
 {
+  if (!audio_ok)
+    return;
   Mix_VolumeMusic(volume);
 }
 
 void SoundManager::stopMusic()
 {
+  if (!audio_ok)
+    return;
   Mix_HaltMusic();
 }
 
 void SoundManager::playSound(unsigned int sound_id, int loops)
 {
-  if( Mix_PlayChannel( -1, cachedSounds[sound_id], loops ) == -1 )
+  if( audio_ok && Mix_PlayChannel( -1, cachedSounds[sound_id], loops ) == -1 )
   {
     printf("ERROR PLAYING SOUND\n");
   }

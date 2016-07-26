@@ -8,6 +8,7 @@
 #ifndef CHARACTERS_ENEMY_H_
 #define CHARACTERS_ENEMY_H_
 
+#include "Behavior.h"
 #include "../sdl/ActiveDrawable.h"
 
 namespace jumpinjack
@@ -36,6 +37,7 @@ namespace jumpinjack
                                               t_direction dir) const;
   private:
     int status_count;
+    std::vector<Behavior *> behavior;
   };
 
 } /* namespace jumpinjack */

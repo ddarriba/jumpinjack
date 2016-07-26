@@ -169,9 +169,12 @@ namespace jumpinjack
     level_width = 4000;
 
     sound_manager = new SoundManager();
-    sound_jump  = sound_manager->loadFromFile("data/sound/jump001.wav");
-    sound_shoot = sound_manager->loadFromFile("data/sound/shoot001.wav");
-    sound_bgmusic = sound_manager->loadMusic("data/sound/music001.ogg");
+    sound_jump  = sound_manager->loadFromFile(
+        GlobalDefs::getResource (RESOURCE_SOUND, "jump001.wav"));
+    sound_shoot = sound_manager->loadFromFile(
+        GlobalDefs::getResource (RESOURCE_SOUND, "shoot001.wav"));
+    sound_bgmusic = sound_manager->loadMusic(
+        GlobalDefs::getResource (RESOURCE_SOUND, "music001.ogg"));
 
     sound_manager->playMusic(sound_bgmusic);
 
@@ -393,6 +396,10 @@ namespace jumpinjack
           if (move_result == MOVE_OK)
           {
             it.point.x += inc;
+          }
+          else if (move_result == MOVE_DEATH)
+          {
+            character->onDestroy ();
           }
           else
           {

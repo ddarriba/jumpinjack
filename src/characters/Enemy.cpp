@@ -6,6 +6,7 @@
 */
 
 #include "Enemy.h"
+#include "BehaviorWalker.h"
 
 using namespace std;
 
@@ -31,10 +32,15 @@ namespace jumpinjack
 
     behavior_h_colision = (t_behavior_h_collision)
         (BH_COLLISION_TURN_AT_PASSIVE);// | BH_COLLISION_DIE_AT_PLAYER);
+
+    behavior.push_back(new BehaviorWalker(att_speed));
   }
 
   Enemy::~Enemy ()
   {
+    for (Behavior * b : behavior)
+      delete b;
+    behavior.clear();
   }
 
   void Enemy::onCreate (void)
@@ -84,10 +90,8 @@ namespace jumpinjack
     }
     else
     {
-      if (direction == DIRECTION_RIGHT)
-        next_point.x = att_speed;
-      else
-        next_point.x = -att_speed;
+      for (Behavior * b : behavior)
+        b->update(next_point, direction);
     }
 
     ActiveDrawable::update(next_point);

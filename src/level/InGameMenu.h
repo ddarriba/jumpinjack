@@ -31,11 +31,11 @@ namespace jumpinjack
 
   typedef struct
   {
-      std::string option_text;
-      menu_action action;
-      Drawable * texture;
-      SDL_Rect quad;
-      bool selected;
+    int id;
+    std::string option_text;
+    menu_action action;
+    Drawable * texture;
+    SDL_Rect quad;
   } t_option;
 
   class InGameMenu : public Drawable
@@ -52,6 +52,7 @@ namespace jumpinjack
       std::vector<t_option> options;
       BackgroundDrawable * bg;
       menu_state state;
+      int selected_option;
 
       int menu_y;
   };

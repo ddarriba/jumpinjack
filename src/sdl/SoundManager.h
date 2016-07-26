@@ -32,6 +32,7 @@ namespace jumpinjack
       void stopMusic();
       void cleanCache (void);
     private:
+      bool audio_ok;
       unsigned long next_sound_id;
       std::map<unsigned long, Mix_Chunk *> cachedSounds;
       std::map<unsigned long, Mix_Music *> cachedMusic;
