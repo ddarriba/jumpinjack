@@ -320,7 +320,9 @@ namespace jumpinjack
         assert (0);
     }
     if (pixel == PIXELTYPE_DEATH)
+    {
       return MOVE_DEATH;
+    }
     if (move_ok)
       return MOVE_OK;
     return MOVE_NOT;
@@ -332,19 +334,73 @@ namespace jumpinjack
       return (T (0) < val) - (val < T (0));
     }
 
-  bool detectCollision (itemInfo & it1, itemInfo & it2,
-                        t_direction * collision_direction)
+  t_collision LevelManager::collide(ActiveDrawable * character,
+                               Drawable * item,
+                               t_direction direction,
+                               t_itemtype type,
+                               t_point & point,
+                               t_point & delta,
+                               t_point * otherpoint,
+                               t_point * otherdelta)
+  {
+    t_collision collision_result = character->onCollision (item, direction,
+                                                           type, point, delta,
+                                                           otherpoint,
+                                                           otherdelta);
+
+    if (direction & DIRECTION_HORIZONTAL)
+      delta.x = 0;
+    if (direction & DIRECTION_VERTICAL)
+      delta.y = (direction & DIRECTION_UP) ? 2 : 0;
+
+    if (collision_result != COLLISION_IGNORE)
+    {
+      switch (collision_result)
+      {
+        case COLLISION_EXPLODE:
+        {
+          StaticAnimation * explosion = new StaticAnimation (
+              renderer,
+              GlobalDefs::getResource (RESOURCE_IMAGE, "explosion.png"), 11, 0,
+              2, LIFESPAN_ONE_LOOP, 0);
+          itemInfo explosion_info =
+            { explosion, ITEM_PASSIVE, point,
+              { 0, 0 }, point,
+              { 0, 0 } };
+          items.push_back (explosion_info);
+          character->onDestroy ();
+          break;
+        }
+        case COLLISION_DIE:
+          character->onDestroy ();
+          break;
+        case COLLISION_TURN:
+          /* character turns automatically */
+          break;
+        default:
+          /* ignore */
+          break;
+      }
+    }
+    return collision_result;
+  }
+
+  bool LevelManager::detectCollision (itemInfo & it1, itemInfo & it2,
+                                      t_direction * collision_direction)
   {
     t_point min1 =
-      { it1.point.x - it1.item->getWidth () / 3, it1.point.y
-          - it1.item->getHeight () };
+      { min(it1.point.x, it1.next_point.x) - it1.item->getWidth () / 3,
+        min(it1.point.y, it1.next_point.y) - it1.item->getHeight () };
     t_point max1 =
-      { it1.point.x + it1.item->getWidth () / 3, it1.point.y };
+      { max(it1.point.x, it1.next_point.x) + it1.item->getWidth () / 3,
+        max(it1.point.y, it1.next_point.y) };
     t_point min2 =
-      { it2.point.x - it2.item->getWidth () / 3, it2.point.y
-          - it2.item->getHeight () };
+      { min(it2.point.x, it2.next_point.x) - it2.item->getWidth () / 3,
+        min(it2.point.y, it2.next_point.y) - it2.item->getHeight () };
     t_point max2 =
-      { it2.point.x + it2.item->getWidth () / 3, it2.point.y };
+      { max(it2.point.x, it2.next_point.x) + it2.item->getWidth () / 3,
+        max(it2.point.y, it2.next_point.y) };
+
     if (min2.x > max1.x || min1.x > max2.x || min2.y > max1.y
         || min1.y > max2.y)
       return false;
@@ -352,6 +408,7 @@ namespace jumpinjack
     {
       t_direction hdir =
           (it1.point.x < it2.point.x) ? DIRECTION_RIGHT : DIRECTION_LEFT;
+
       *collision_direction = (t_direction) (DIRECTION_HORIZONTAL | hdir);
       if (it1.point.y < (it2.point.y - it2.item->getHeight () / 2))
       {
@@ -365,56 +422,21 @@ namespace jumpinjack
         *collision_direction = (t_direction) (*collision_direction
             | DIRECTION_VERTICAL | vdir);
       }
-      return true;
-    }
-  }
 
-  void LevelManager::collide(ActiveDrawable * character,
-                             Drawable * item,
-                             t_direction direction,
-                             t_itemtype type,
-                             t_point & point,
-                             t_point & delta,
-                             t_point * otherpoint,
-                             t_point * otherdelta)
-  {
-    t_collision collision_result = character->onCollision (item,
-                                                       direction,
-                                                       type,
-                                                       point, delta,
-                                                       otherpoint, otherdelta);
-
-    if (direction & DIRECTION_HORIZONTAL) delta.x = 0;
-    if (direction & DIRECTION_VERTICAL) delta.y = (direction & DIRECTION_UP)?2:0;
-
-    if (collision_result != COLLISION_IGNORE)
-    {
-      switch (collision_result)
+      bool coll_effect =
+      collide ((ActiveDrawable *) it1.item, it2.item, *collision_direction,
+               it2.type, it1.point, it1.delta, &it2.point,
+               &it2.delta) != COLLISION_IGNORE;
+      coll_effect |=
+      collide ((ActiveDrawable *) it2.item, it1.item,
+               reverseDirection (*collision_direction), it1.type, it2.point,
+               it2.delta, &it1.point, &it1.delta) != COLLISION_IGNORE;
+      if (coll_effect)
       {
-        case COLLISION_EXPLODE:
-        {
-          StaticAnimation * explosion = new StaticAnimation (
-              renderer,
-              GlobalDefs::getResource (RESOURCE_IMAGE, "explosion.png"), 11,
-              0, 2, LIFESPAN_ONE_LOOP, 0);
-          itemInfo explosion_info =
-            { explosion, ITEM_PASSIVE, point,
-              { 0, 0 }, point,
-                { 0, 0 } };
-          items.push_back (explosion_info);
-          character->onDestroy ();
-          break;
-        }
-        case COLLISION_DIE:
-          character->onDestroy ();
-          break;
-        case COLLISION_TURN:
-          character->setDirection(
-            reverseDirection(character->getDirection()));
-        default:
-          /* ignore */
-          break;
+        it1.next_point.x = it2.next_point.x;
+        it1.next_point.y = it2.next_point.y;
       }
+      return true;
     }
   }
 
@@ -611,30 +633,14 @@ namespace jumpinjack
     for (size_t i = 0; i < items.size (); i++)
     {
       itemInfo & item1 = items[i];
-      if (!item1.item->getStatus (STATUS_LISTENING))
+      if ((!item1.item->getStatus (STATUS_LISTENING)) || item1.type == ITEM_PASSIVE)
         continue;
       for (size_t j = i + 1; j < items.size (); j++)
       {
         itemInfo & item2 = items[j];
-        if (!item2.item->getStatus (STATUS_LISTENING))
+        if ((!item2.item->getStatus (STATUS_LISTENING)) || item2.type == ITEM_PASSIVE)
           continue;
-        if (detectCollision (item1, item2, &collision_direction))
-        {
-          if (item1.type != ITEM_PASSIVE)
-          {
-            collide((ActiveDrawable *)item1.item, item2.item, collision_direction,
-                    item2.type, item1.point, item1.delta,
-                    &item2.point, &item2.delta);
-          }
-          if (item2.type != ITEM_PASSIVE)
-          {
-            collide((ActiveDrawable *)item2.item, item1.item,
-                    reverseDirection (collision_direction),
-                    item1.type,
-                    item2.point, item2.delta,
-                    &item1.point, &item1.delta);
-          }
-        }
+        detectCollision (item1, item2, &collision_direction);
       }
     }
 

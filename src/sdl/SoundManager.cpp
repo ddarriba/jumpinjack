@@ -21,6 +21,10 @@ SoundManager::SoundManager ()
   {
     audio_ok = false;
     cerr << "Error initializing sound: " << Mix_GetError() << endl;
+    cerr << "Available drivers: ";
+    for (int i = 0; i < SDL_GetNumAudioDrivers(); ++i)
+       cerr << SDL_GetAudioDriver(i) << " ";
+    cerr << endl;
     cerr << "Sound disabled" << endl;
   }
 }

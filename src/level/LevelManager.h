@@ -75,14 +75,16 @@ namespace jumpinjack
       bool updatePosition (itemInfo & it);
       t_move canMoveTo (t_point p, ActiveDrawable * character, t_direction dir);
       void loadLevelData(std::vector<Player *> & players);
-      void collide(ActiveDrawable * character,
-                   Drawable * item,
-                   t_direction direction,
-                   t_itemtype type,
-                   t_point & point,
-                   t_point & delta,
-                   t_point * otherpoint = 0,
-                   t_point * otherdelta = 0);
+      t_collision collide(ActiveDrawable * character,
+                          Drawable * item,
+                          t_direction direction,
+                          t_itemtype type,
+                          t_point & point,
+                          t_point & delta,
+                          t_point * otherpoint = 0,
+                          t_point * otherdelta = 0);
+      bool detectCollision (itemInfo & it1, itemInfo & it2,
+                            t_direction * collision_direction);
       SDL_Renderer * renderer;
       SoundManager * sound_manager;
 
