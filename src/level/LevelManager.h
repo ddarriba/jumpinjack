@@ -13,6 +13,7 @@
 #include "../sdl/BackgroundDrawable.h"
 #include "../sdl/SoundManager.h"
 #include "../characters/Player.h"
+#include "DeathScreen.h"
 
 #define PARALLAX_LAYERS 3
 
@@ -70,6 +71,8 @@ namespace jumpinjack
       void update ();
       void render ();
       void pause (bool set);
+      bool is_paused () const;
+      bool is_alive () const;
 
     private:
       bool updatePosition (itemInfo & it);
@@ -102,7 +105,10 @@ namespace jumpinjack
       unsigned long sound_shoot;
       unsigned long sound_bgmusic;
 
+      DeathScreen * death_screen;
+
       bool paused;
+      bool alive;
   };
 
 } /* namespace jumpinjack */

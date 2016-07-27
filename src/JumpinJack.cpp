@@ -126,7 +126,7 @@ int main (void)
       manager.update (game_paused);
 
       /* render */
-      manager.render (game_paused);
+      manager.render ();
 
       manager.endLoop ();
     }

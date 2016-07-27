@@ -57,10 +57,8 @@ namespace jumpinjack
 
       void startLoop ();
       void endLoop ();
-
-      void update (bool game_paused = false);
-
-      void render (bool render_menu = false);
+      void update (bool paused = false);
+      void render ();
     private:
       bool init();
 

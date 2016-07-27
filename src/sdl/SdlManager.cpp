@@ -19,8 +19,8 @@ namespace jumpinjack
     init ();
     mapped_events.reserve (MAX_EVENTS);
     players.reserve(MAX_PLAYERS);
-    level = NULL;
-    ingame_menu = NULL;
+    level        = 0;
+    ingame_menu  = 0;
   }
 
   SdlManager::~SdlManager ()
@@ -130,7 +130,7 @@ namespace jumpinjack
     assert (!level);
 
     level = new LevelManager(renderer, level_id, players);
-    ingame_menu = new InGameMenu(renderer);
+    ingame_menu  = new InGameMenu(renderer);
     return 0;
   }
 
@@ -143,6 +143,9 @@ namespace jumpinjack
 
   void SdlManager::pollEvents ()
   {
+    if (!level->is_alive())
+      return;
+
     while (!events_queue.empty ())
       events_queue.pop ();
 
@@ -390,7 +393,7 @@ namespace jumpinjack
       }
   }
 
-  void SdlManager::render (bool render_menu)
+  void SdlManager::render ()
   {
     assert(level);
 
@@ -400,7 +403,7 @@ namespace jumpinjack
 
     level->render ();
 
-    if (render_menu)
+    if (level->is_paused())
       {
         assert(ingame_menu);
         ingame_menu->renderFixed (

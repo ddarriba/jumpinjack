@@ -18,7 +18,7 @@ namespace jumpinjack
   }
 
   InGameMenu::InGameMenu (SDL_Renderer * renderer) :
-      Drawable(renderer, 100, false)
+      AbstractMenu(renderer, "data/img/menu-bg.png")
   {
     selected_option = 0;
 
@@ -48,10 +48,6 @@ namespace jumpinjack
         yMenuOffset += op.quad.h;
       }
 
-    bg = new BackgroundDrawable(renderer, "data/img/menu-bg.png", 0);
-    assert(bg);
-
-    state = MENU_STATE_LOAD;
     reset_y(&menu_y);
   }
 
@@ -154,24 +150,13 @@ namespace jumpinjack
         if (menu_y>= 0)
           state = MENU_STATE_FIXED;
       }
-    bg->render({
-      (GlobalDefs::window_size.x - 640) / 2
-      , menu_y}, {640,400});
-    for (t_option & op : options)
-          {
-        op.texture->render({(GlobalDefs::window_size.x - op.quad.w) / 2, menu_y + op.quad.y},{op.quad.w,
-            op.quad.h});
-          }
+
+    t_point menu_point = { (GlobalDefs::window_size.x - 640) / 2, menu_y };
+    _render(menu_point);
   }
 
   InGameMenu::~InGameMenu ()
   {
-    for (t_option & op : options)
-      {
-        if (op.texture)
-          delete op.texture;
-      }
-    delete bg;
   }
 
 } /* namespace jumpinjack */

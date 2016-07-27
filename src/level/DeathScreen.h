@@ -1,25 +1,25 @@
 /*
- * InGameMenu.h
+ * DeathScreen.h
  *
  *  Created on: May 24, 2015
  *      Author: diego
  */
 
-#ifndef LEVEL_INGAMEMENU_H_
-#define LEVEL_INGAMEMENU_H_
+#ifndef DEATH_SCREEN_H
+#define DEATH_SCREEN_H
 
 #include "AbstractMenu.h"
 
-const t_point ingame_menu_size =
+const t_point death_screen_size =
   { 400, 300 };
 
 namespace jumpinjack
 {
-  class InGameMenu : public AbstractMenu
+  class DeathScreen : public AbstractMenu
   {
     public:
-      InGameMenu (SDL_Renderer * renderer);
-      virtual ~InGameMenu ();
+      DeathScreen (SDL_Renderer * renderer);
+      virtual ~DeathScreen ();
 
       virtual menu_action poll ();
       virtual void renderFixed (t_point point);
@@ -29,4 +29,4 @@ namespace jumpinjack
 
 } /* namespace jumpinjack */
 
-#endif /* LEVEL_INGAMEMENU_H_ */
+#endif /* DEATH_SCREEN_H */

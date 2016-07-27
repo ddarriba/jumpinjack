@@ -184,7 +184,10 @@ namespace jumpinjack
 
     sound_manager->playMusic(sound_bgmusic);
 
+    death_screen = new DeathScreen(renderer);
+
     paused = false;
+    alive = true;
   }
 
   LevelManager::~LevelManager ()
@@ -200,6 +203,9 @@ namespace jumpinjack
 
   void LevelManager::applyAction (int player_id, t_action action)
   {
+    if (!alive)
+      return;
+
     assert (player_id < num_players);
     itemInfo & player_info = items[player_id];
     Player * player = (Player *) player_info.item;
@@ -568,8 +574,8 @@ namespace jumpinjack
       {
         character->unsetStatus (STATUS_DYING);
         character->setStatus (STATUS_LISTENING);
-        it.next_point = checkpoint;
-        it.next_delta = { 0,0};
+        it.next_point = it.point;
+        it.next_delta = {0,0};
         return false;
       }
     }
@@ -600,14 +606,38 @@ namespace jumpinjack
 
   void LevelManager::update ()
   {
-    bool alive = true;
+    bool player_alive = true;
+
+    if (!alive)
+    {
+      switch (death_screen->poll ())
+      {
+      case MENU_CONTINUE:
+      {
+        vector<Player *> players;
+        for (itemInfo item : items)
+        {
+          if (item.type == ITEM_PLAYER)
+            players.push_back (dynamic_cast<Player *> (item.item));
+        }
+        loadLevelData (players);
+        alive = true;
+      }
+        break;
+      case MENU_SET_CONTROLS:
+      case MENU_MAIN:
+      case MENU_NONE:
+        /* ignore */
+        break;
+      }
+    }
 
     /* update positions */
     for (size_t i = 0; i < items.size (); i++)
     {
       if (items[i].item->getStatus (STATUS_ALIVE))
       {
-        alive &= updatePosition (items[i]);
+        player_alive &= updatePosition (items[i]);
       }
       else
       {
@@ -617,15 +647,10 @@ namespace jumpinjack
       }
     }
 
-    if (!alive)
+    if (!player_alive)
     {
-      vector<Player *> players;
-      for (itemInfo item : items)
-      {
-        if (item.type == ITEM_PLAYER)
-          players.push_back(dynamic_cast<Player *>(item.item));
-      }
-      loadLevelData(players);
+      assert(!paused);
+      alive = false;
     }
 
     /* collision detection */
@@ -677,6 +702,12 @@ namespace jumpinjack
         it.item->renderFixed (render_point);
       }
     }
+
+    if (!alive)
+    {
+      death_screen->renderFixed (
+        { 0, 0 });
+    }
   }
 
   void LevelManager::pause(bool set)
@@ -686,5 +717,15 @@ namespace jumpinjack
 
     paused = set;
     sound_manager->setMusicVolume(paused?48:128);
+  }
+
+  bool LevelManager::is_paused () const
+  {
+    return paused;
+  }
+
+  bool LevelManager::is_alive () const
+  {
+    return alive;
   }
 } /* namespace jumpinjack */
