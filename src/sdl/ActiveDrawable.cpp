@@ -165,6 +165,9 @@ namespace jumpinjack
         case ITEM_PROJECTILE:
           collision_result = COLLISION_DIE;
           break;
+        case ITEM_CHECK:
+          collision_result = COLLISION_IGNORE;
+          break;
       }
     }
 

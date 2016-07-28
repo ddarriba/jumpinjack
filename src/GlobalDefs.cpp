@@ -20,9 +20,9 @@ namespace jumpinjack
   int GlobalDefs::max_falling_speed = 25;
   int GlobalDefs::max_jump_speed = 25;
   int GlobalDefs::base_friction = 2;
-  int GlobalDefs::framerate = 25; //FRAMERATE_DYNAMIC;
+  int GlobalDefs::framerate = 25;
 
-  int GlobalDefs::jump_sensitivity = 5; //FRAMERATE_DYNAMIC;
+  int GlobalDefs::jump_sensitivity = 5;
 
   string GlobalDefs::getResource (t_resource type, const char * file)
   {

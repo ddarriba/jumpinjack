@@ -7,6 +7,7 @@
 
 #include "LevelManager.h"
 #include "../characters/Enemy.h"
+#include "Checkpoint.h"
 #include <sstream>
 #include <fstream>
 #include "../items/Gunshot.h"
@@ -88,6 +89,8 @@ namespace jumpinjack
               &item_pos.x, &item_pos.y, &item_delta.x, &item_delta.y);
       if (!strcmp (item_typestr, "ITEM_ENEMY"))
         item_type = ITEM_ENEMY;
+      else if (!strcmp (item_typestr, "ITEM_CHECK"))
+        item_type = ITEM_CHECK;
 
       level_data.items[i].sprite_filename = GlobalDefs::getResource (RESOURCE_IMAGE, resource_img);
       level_data.items[i].sprite_len      = sprite_len;
@@ -203,6 +206,15 @@ namespace jumpinjack
                   item_desc.start_point, item_desc.start_delta,
                   item_desc.start_point, item_desc.start_delta,
                   true });
+          break;
+        case ITEM_CHECK:
+          items.push_back (
+                { new Checkpoint (renderer, item_desc.sprite_filename),
+                  ITEM_CHECK,
+                  item_desc.start_point, item_desc.start_delta,
+                  item_desc.start_point, item_desc.start_delta,
+                  true
+                });
           break;
         default:
           assert (0);
@@ -442,6 +454,10 @@ namespace jumpinjack
           collision_result = COLLISION_DIE;
           break;
         }
+        case (COLLISION_CHECKPOINT):
+          collision_result = COLLISION_IGNORE;
+          saveLevelData();
+          break;
         default:
           /* ignore */
           break;
