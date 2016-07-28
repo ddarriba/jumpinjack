@@ -26,7 +26,6 @@ namespace jumpinjack
       virtual ~Enemy ();
 
       virtual void onCreate (void);
-      virtual void onDestroy (void);
       virtual t_collision onCollision (Drawable * item, t_direction dir,
                                        t_itemtype type, t_point & point,
                                        t_point & delta,

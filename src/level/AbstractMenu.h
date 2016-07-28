@@ -50,7 +50,10 @@ namespace jumpinjack
       MENU_STATE_LOAD, MENU_STATE_FIXED, MENU_STATE_UNLOAD, MENU_STATE_DONE
     };
 
-    void _render(t_point & point);
+    t_point window_pos;
+    t_point window_size;
+
+    void _render( void ) const;
     std::vector<t_option> options;
     BackgroundDrawable * bg;
     menu_state state;

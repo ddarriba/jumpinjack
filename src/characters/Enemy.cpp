@@ -47,17 +47,6 @@ namespace jumpinjack
   {
   }
 
-  void Enemy::onDestroy (void)
-  {
-    if (!getStatus(STATUS_DYING))
-    {
-      unsetStatus (STATUS_LISTENING);
-      setStatus (STATUS_DYING);
-      sprite_line = 1;
-      status_count = 0;
-    }
-  }
-
   t_collision Enemy::onCollision (Drawable * item,
                                   t_direction dir,
                                   t_itemtype type, t_point & point,

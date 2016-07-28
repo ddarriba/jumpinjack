@@ -58,6 +58,7 @@ namespace jumpinjack
       t_point delta;
       t_point next_point;
       t_point next_delta;
+      bool alive;
   } itemInfo;
 
   class LevelManager
@@ -77,7 +78,7 @@ namespace jumpinjack
     private:
       bool updatePosition (itemInfo & it);
       t_move canMoveTo (t_point p, ActiveDrawable * character, t_direction dir);
-      void loadLevelData(std::vector<Player *> & players);
+      void loadLevelData(void);
       t_collision collide(ActiveDrawable * character,
                           Drawable * item,
                           t_direction direction,
@@ -95,6 +96,7 @@ namespace jumpinjack
       int level_width;
       int num_players;
       std::vector<itemInfo> items;
+      std::vector<Player *> & players;
       std::vector<BackgroundDrawable *> bg_layers;
       Surface * level_surface;
 

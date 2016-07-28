@@ -17,17 +17,44 @@ namespace jumpinjack
                   int sprite_length, int sprite_start_line,
                   int sprite_frequency) :
           ActiveDrawable (renderer, sprite_file, sprite_length,
-                          sprite_start_line, sprite_frequency)
+                          sprite_start_line, sprite_frequency, {32, 32})
   {
-    current_state = PLAYER_RUN;
-    att_accel = 5;
-    att_jump  = 20;
-    att_speed = 15;
-    direction = DIRECTION_RIGHT;
+    base_sprite_frequency = sprite_frequency;
+    resetState();
   }
 
   Player::~Player ()
   {
+  }
+
+  void Player::resetState(void)
+  {
+    unsetStatus(STATUS_ALL);
+    setStatus(STATUS_ALIVE);
+    setStatus(STATUS_LISTENING);
+
+    att_accel = 5;
+    att_jump  = 20;
+    att_speed = 15;
+
+    render_size = {32,32};
+
+    sprite_line = sprite_start_line;
+    player_state = PLAYER_RUN;
+    direction = DIRECTION_RIGHT;
+
+    status_count = 0;
+    sprite_frequency = base_sprite_frequency;
+  }
+
+  void Player::setPlayerState (playerState new_state)
+  {
+    player_state = new_state;
+  }
+
+  playerState Player::getPlayerState () const
+  {
+    return player_state;
   }
 
   void Player::onCreate (void)
@@ -37,8 +64,14 @@ namespace jumpinjack
 
   void Player::onDestroy (void)
   {
-	 unsetStatus (STATUS_LISTENING);
-	 setStatus (STATUS_DYING);
+    if (!getStatus(STATUS_DYING))
+    {
+      resetSpriteIndex();
+      unsetStatus (STATUS_LISTENING);
+      setStatus (STATUS_DYING);
+      status_count = 0;
+      player_state = PLAYER_DEAD;
+    }
   }
 
   t_collision Player::onCollision (Drawable * item, t_direction dir,
@@ -60,10 +93,10 @@ namespace jumpinjack
 		  {
 		    delta.x = -25;
 		  }
-		  current_state = PLAYER_HIT;
+		  player_state = PLAYER_HIT;
 		  unsetStatus (STATUS_LISTENING);
 		  setStatus (STATUS_UNTOUCHABLE);
-		  sprite_index = 0;
+		  resetSpriteIndex();
 		  hit_counter = 0;
 		}
 		return COLLISION_DIE;
@@ -98,10 +131,10 @@ namespace jumpinjack
                   {
                     delta.x = -25;
                   }
-                current_state = PLAYER_HIT;
+                player_state = PLAYER_HIT;
                 unsetStatus (STATUS_LISTENING);
                 setStatus (STATUS_UNTOUCHABLE);
-                sprite_index = 0;
+                resetSpriteIndex();
                 hit_counter = 0;
               }
           }
@@ -111,27 +144,39 @@ namespace jumpinjack
 
   void Player::update (SDL_Point & next_point)
   {
-    if (current_state == PLAYER_HIT || hit_counter)
+    if (getStatus (STATUS_DYING))
+    {
+      status_count++;
+      render_size.x += 20;
+      render_size.y += 20;
+      if (status_count >= (4*base_sprite_frequency))
+      {
+        unsetStatus (STATUS_ALIVE);
+      }
+    }
+    else
+    {
+      if (player_state == PLAYER_HIT || hit_counter)
       {
         hit_counter++;
         //*y += 10;
         if (hit_counter >= sprite_length)
+        {
+          if (hit_counter == sprite_length)
           {
-            if (hit_counter == sprite_length)
-              {
-                setStatus (STATUS_LISTENING);
-                current_state = PLAYER_STAND;
-              }
-            else if (hit_counter >= 4 * sprite_length)
-              {
-                unsetStatus (STATUS_UNTOUCHABLE);
-                hit_counter = 0;
-              }
+            setStatus (STATUS_LISTENING);
+            player_state = PLAYER_STAND;
           }
+          else if (hit_counter >= 4 * sprite_length)
+          {
+            unsetStatus (STATUS_UNTOUCHABLE);
+            hit_counter = 0;
+          }
+        }
       }
-
-    sprite_line = sprite_start_line + (int) current_state;
-    if (current_state == PLAYER_JUMP)
+    }
+    sprite_line = sprite_start_line + (int) player_state + (status_count/base_sprite_frequency);
+    if (player_state == PLAYER_JUMP)
       {
         sprite_index = min (sprite_index, sprite_length - 2);
       }

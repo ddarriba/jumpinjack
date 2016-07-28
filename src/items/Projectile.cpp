@@ -15,7 +15,7 @@ namespace jumpinjack
                           t_direction direction, t_point & delta,
                           int shooting_angle, int power, int rotation_speed,
                           int lifespan) :
-          ActiveDrawable (renderer, sprite_file, 10, 0, 1), lifespan (lifespan),
+          ActiveDrawable (renderer, sprite_file, 10, 0, 1, {24,24}), lifespan (lifespan),
           power (power), rotation_speed (rotation_speed)
   {
     setDirection (direction);

@@ -100,8 +100,11 @@ namespace jumpinjack
     myfile.close ();
   }
 
-  void LevelManager::loadLevelData(vector<Player *> & players)
+  void LevelManager::loadLevelData(void)
   {
+    paused = false;
+    alive = true;
+
     /* clean */
     for (itemInfo item : items)
     {
@@ -126,12 +129,14 @@ namespace jumpinjack
     int i = 0;
     for (Player * player : players)
     {
+      player->resetState();
       items.push_back (
             { player, ITEM_PLAYER,
-                level_data.player_start_point[i],
-                level_data.player_start_delta[i],
-                level_data.player_start_point[i],
-                level_data.player_start_delta[i] });
+              level_data.player_start_point[i],
+              level_data.player_start_delta[i],
+              level_data.player_start_point[i],
+              level_data.player_start_delta[i],
+              true });
       checkpoint = level_data.player_start_point[i];
       ++i;
     }
@@ -151,10 +156,12 @@ namespace jumpinjack
         case ITEM_ENEMY:
           items.push_back (
                 { new Enemy (renderer, item_desc.sprite_filename,
-                             item_desc.sprite_len, item_desc.sprite_start,
-                             item_desc.sprite_speed), ITEM_ENEMY,
-                    item_desc.start_point, item_desc.start_delta,
-                    item_desc.start_point, item_desc.start_delta });
+                  item_desc.sprite_len, item_desc.sprite_start,
+                  item_desc.sprite_speed),
+                  ITEM_ENEMY,
+                  item_desc.start_point, item_desc.start_delta,
+                  item_desc.start_point, item_desc.start_delta,
+                  true });
           break;
         default:
           assert (0);
@@ -164,13 +171,13 @@ namespace jumpinjack
 
   LevelManager::LevelManager (SDL_Renderer * renderer, int level_id,
                               vector<Player *> & players) :
-      renderer (renderer), level_id (level_id), num_players (players.size ())
+      renderer (renderer), level_id (level_id), num_players (players.size ()), players(players)
   {
     level_surface = 0;
 
     parse_level_file(level_id, players.size(), level_data);
 
-    loadLevelData(players);
+    loadLevelData();
 
     level_width = 4000;
 
@@ -185,9 +192,6 @@ namespace jumpinjack
     sound_manager->playMusic(sound_bgmusic);
 
     death_screen = new DeathScreen(renderer);
-
-    paused = false;
-    alive = true;
   }
 
   LevelManager::~LevelManager ()
@@ -219,7 +223,7 @@ namespace jumpinjack
             1.5 * player->getSpeed () : player->getSpeed ();
     if (action & ACTION_RIGHT)
     {
-      player->setState (PLAYER_RUN);
+      player->setPlayerState (PLAYER_RUN);
       player->setDirection (DIRECTION_RIGHT);
       player_info.delta.x += player->getAccel ();
       if (player_info.delta.x > max_speed)
@@ -228,7 +232,7 @@ namespace jumpinjack
     }
     if (action & ACTION_LEFT)
     {
-      player->setState (PLAYER_RUN);
+      player->setPlayerState (PLAYER_RUN);
       player->setDirection (DIRECTION_LEFT);
       player_info.delta.x -= player->getAccel ();
       if (player_info.delta.x < -max_speed)
@@ -244,12 +248,13 @@ namespace jumpinjack
         { player->createProjectile(delta),
           ITEM_PROJECTILE,
           point, delta,
-          point, delta };
+          point, delta,
+          true };
       items.push_back (shoot_info);
       sound_manager->playSound(sound_shoot);
     }
     if (!run && !player_info.delta.x)
-      player->setState (PLAYER_STAND);
+      player->setPlayerState (PLAYER_STAND);
     if (action & ACTION_UP)
     {
       if (player->onJump < GlobalDefs::jump_sensitivity)
@@ -274,11 +279,11 @@ namespace jumpinjack
     }
     if (player_info.delta.y < 0)
     {
-      player->setState (PLAYER_JUMP);
+      player->setPlayerState (PLAYER_JUMP);
     }
     else if (player_info.delta.y > 0)
     {
-      player->setState (PLAYER_FALL);
+      player->setPlayerState (PLAYER_FALL);
     }
 
     if (action & ACTION_UP_REL)
@@ -372,17 +377,11 @@ namespace jumpinjack
           itemInfo explosion_info =
             { explosion, ITEM_PASSIVE, point,
               { 0, 0 }, point,
-              { 0, 0 } };
+              { 0, 0 }, true };
           items.push_back (explosion_info);
-          character->onDestroy ();
+          collision_result = COLLISION_DIE;
           break;
         }
-        case COLLISION_DIE:
-          character->onDestroy ();
-          break;
-        case COLLISION_TURN:
-          /* character turns automatically */
-          break;
         default:
           /* ignore */
           break;
@@ -429,19 +428,28 @@ namespace jumpinjack
             | DIRECTION_VERTICAL | vdir);
       }
 
-      bool coll_effect =
-      collide ((ActiveDrawable *) it1.item, it2.item, *collision_direction,
+      bool merge_points = false;
+      if (collide ((ActiveDrawable *) it1.item, it2.item, *collision_direction,
                it2.type, it1.point, it1.delta, &it2.point,
-               &it2.delta) != COLLISION_IGNORE;
-      coll_effect |=
-      collide ((ActiveDrawable *) it2.item, it1.item,
+               &it2.delta) != COLLISION_IGNORE)
+      {
+        merge_points = true;
+        it1.alive = false;
+      }
+      if (collide ((ActiveDrawable *) it2.item, it1.item,
                reverseDirection (*collision_direction), it1.type, it2.point,
-               it2.delta, &it1.point, &it1.delta) != COLLISION_IGNORE;
-      if (coll_effect)
+               it2.delta, &it1.point, &it1.delta) != COLLISION_IGNORE)
+      {
+        merge_points = true;
+        it2.alive = false;
+      }
+
+      if (merge_points)
       {
         it1.next_point.x = it2.next_point.x;
         it1.next_point.y = it2.next_point.y;
       }
+
       return true;
     }
   }
@@ -453,6 +461,8 @@ namespace jumpinjack
     it.next_delta = it.delta;
     it.next_point = it.point;
     it.item->update (it.next_delta);
+
+    if (!it.alive) return true;
 
     if (it.type != ITEM_PASSIVE)
     {
@@ -479,13 +489,14 @@ namespace jumpinjack
             it.next_point.x += inc;
             break;
           case MOVE_DEATH:
-            character->onDestroy ();
-            return true;
+            it.alive = false;
+            goloop = false;
             break;
           case MOVE_NOT:
-            collide(character, 0,
+            if (collide(character, 0,
                     DIRECTION_HORIZONTAL, ITEM_PASSIVE,
-                    it.next_point, it.next_delta);
+                    it.next_point, it.next_delta) == COLLISION_DIE)
+              it.alive = false;
             goloop = false;
             break;
           }
@@ -501,82 +512,84 @@ namespace jumpinjack
       }
 
       /* gravity */
-      t_move move_result = canMoveTo (it.next_point, character, DIRECTION_DOWN);
-      if (move_result == MOVE_OK)
+      if (it.alive)
       {
-        it.next_delta.y = min (GlobalDefs::max_falling_speed, it.next_delta.y + gravity);
-        character->jumpId = max (1, character->jumpId);
-      }
-      else if (move_result == MOVE_DEATH)
-      {
-        character->onDestroy ();
-        return true;
-      }
-      else
-        character->jumpId = 0;
-
-      /* move vertical */
-      if (it.next_delta.y)
-      {
-        int inc = sgn (it.delta.y);
-        t_direction dir = (inc > 0) ? DIRECTION_DOWN : DIRECTION_UP;
-        bool goloop = true;
-        for (int i = 0; goloop && i < abs (it.next_delta.y); i++)
+        t_move move_result = canMoveTo (it.next_point, character, DIRECTION_DOWN);
+        switch (move_result)
         {
-          t_move move_result = canMoveTo (it.next_point, character, dir);
-          switch (move_result)
-          {
-            case MOVE_OK:
-            {
-              it.next_point.y += inc;
-              if (!(character->jumpId < character->multipleJump ())
-                  && dir == DIRECTION_DOWN)
-              {
-                if (!character->onJump)
-                {
-                  character->onJump = JUMPING_TRIGGER;
-                }
-                else if (character->onJump < GlobalDefs::jump_sensitivity)
-                  character->onJump = GlobalDefs::jump_sensitivity;
-              }
-              break;
-            }
-            case MOVE_DEATH:
-              character->onDestroy ();
-              break;
-            case MOVE_NOT:
-            {
-              if (dir == DIRECTION_DOWN)
-              {
-                if (character->onJump == JUMPING_TRIGGER)
-                {
-                  character->jumpId = 0;
-                  character->onJump = JUMPING_RESET;
-                }
-                else if (character->onJump)
-                  character->onJump = (JUMPING_TRIGGER + 1);
-              }
+          case MOVE_OK:
+            it.next_delta.y = min (GlobalDefs::max_falling_speed, it.next_delta.y + gravity);
+            character->jumpId = max (1, character->jumpId);
+            break;
+          case MOVE_DEATH:
+            it.alive = false;
+            break;
+          case MOVE_NOT:
+            character->jumpId = 0;
+            break;
+        }
 
-              collide(character, 0,
-                      (t_direction) (DIRECTION_VERTICAL | dir),
-                      ITEM_PASSIVE,
-                      it.next_point,
-                      it.next_delta);
-              goloop = false;
-              break;
+        /* move vertical */
+        if (it.next_delta.y)
+        {
+          int inc = sgn (it.delta.y);
+          t_direction dir = (inc > 0) ? DIRECTION_DOWN : DIRECTION_UP;
+          bool goloop = true;
+          for (int i = 0; goloop && i < abs (it.next_delta.y); i++)
+          {
+            t_move move_result = canMoveTo (it.next_point, character, dir);
+            switch (move_result)
+            {
+              case MOVE_OK:
+              {
+                it.next_point.y += inc;
+                if (!(character->jumpId < character->multipleJump ())
+                    && dir == DIRECTION_DOWN)
+                {
+                  if (!character->onJump)
+                  {
+                    character->onJump = JUMPING_TRIGGER;
+                  }
+                  else if (character->onJump < GlobalDefs::jump_sensitivity)
+                    character->onJump = GlobalDefs::jump_sensitivity;
+                }
+                break;
+              }
+              case MOVE_DEATH:
+                it.alive = false;
+                goloop = false;
+                break;
+              case MOVE_NOT:
+              {
+                if (dir == DIRECTION_DOWN)
+                {
+                  if (character->onJump == JUMPING_TRIGGER)
+                  {
+                    character->jumpId = 0;
+                    character->onJump = JUMPING_RESET;
+                  }
+                  else if (character->onJump)
+                    character->onJump = (JUMPING_TRIGGER + 1);
+                }
+
+                if (collide(character, 0,
+                        (t_direction) (DIRECTION_VERTICAL | dir),
+                        ITEM_PASSIVE,
+                        it.next_point,
+                        it.next_delta) == COLLISION_DIE)
+                  it.alive = false;
+                goloop = false;
+                break;
+              }
             }
           }
-        }
+        } /* move vertical */
       }
-      /* move vertical */
-
-      if (it.type == ITEM_PLAYER && character->getStatus (STATUS_DYING))
+      else
       {
-        character->unsetStatus (STATUS_DYING);
-        character->setStatus (STATUS_LISTENING);
-        it.next_point = it.point;
-        it.next_delta = {0,0};
-        return false;
+        it.item->onDestroy();
+        if (it.type == ITEM_PLAYER)
+          return false;
       }
     }
     return true;
@@ -614,19 +627,11 @@ namespace jumpinjack
       {
       case MENU_CONTINUE:
       {
-        vector<Player *> players;
-        for (itemInfo item : items)
-        {
-          if (item.type == ITEM_PLAYER)
-            players.push_back (dynamic_cast<Player *> (item.item));
-        }
-        loadLevelData (players);
+        loadLevelData ();
         alive = true;
       }
         break;
-      case MENU_SET_CONTROLS:
-      case MENU_MAIN:
-      case MENU_NONE:
+      default:
         /* ignore */
         break;
       }
@@ -635,22 +640,15 @@ namespace jumpinjack
     /* update positions */
     for (size_t i = 0; i < items.size (); i++)
     {
-      if (items[i].item->getStatus (STATUS_ALIVE))
+      player_alive &= updatePosition (items[i]);
+      if (!items[i].item->getStatus(STATUS_ALIVE))
       {
-        player_alive &= updatePosition (items[i]);
-      }
-      else
-      {
-        delete items[i].item;
+        if (items[i].type != ITEM_PLAYER)
+          delete items[i].item;
+
         items.erase (items.begin () + i);
         i--;
       }
-    }
-
-    if (!player_alive)
-    {
-      assert(!paused);
-      alive = false;
     }
 
     /* collision detection */
@@ -658,22 +656,42 @@ namespace jumpinjack
     for (size_t i = 0; i < items.size (); i++)
     {
       itemInfo & item1 = items[i];
+
       if ((!item1.item->getStatus (STATUS_LISTENING)) || item1.type == ITEM_PASSIVE)
         continue;
-      for (size_t j = i + 1; j < items.size (); j++)
+
+      for (size_t j = i + 1; item1.alive && j < items.size (); j++)
       {
         itemInfo & item2 = items[j];
         if ((!item2.item->getStatus (STATUS_LISTENING)) || item2.type == ITEM_PASSIVE)
           continue;
-        detectCollision (item1, item2, &collision_direction);
+        if (detectCollision (item1, item2, &collision_direction))
+          if (!item2.alive)
+          {
+            player_alive &= item2.type != ITEM_PLAYER;
+            item2.item->onDestroy();
+          }
+      }
+      if (!item1.alive)
+      {
+        player_alive &= item1.type != ITEM_PLAYER;
+        item1.item->onDestroy();
       }
     }
 
     /* update positions */
     for (size_t i = 0; i < items.size (); i++)
     {
-        items[i].point = items[i].next_point;
-        items[i].delta = items[i].next_delta;
+      if (!items[i].alive) continue;
+
+      items[i].point = items[i].next_point;
+      items[i].delta = items[i].next_delta;
+    }
+
+    if (!player_alive)
+    {
+      assert (!paused);
+      alive = false;
     }
   }
 
@@ -681,7 +699,7 @@ namespace jumpinjack
   {
     int xOffset =
         (items[0].point.x > GlobalDefs::window_size.x / 2) ?
-            (items[0].point.x - GlobalDefs::window_size.x / 2) : 0;
+        (items[0].point.x - GlobalDefs::window_size.x / 2) : 0;
     if (xOffset > (level_width - GlobalDefs::window_size.x))
       xOffset = (level_width - GlobalDefs::window_size.x);
 

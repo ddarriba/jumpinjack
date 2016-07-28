@@ -14,9 +14,11 @@ namespace jumpinjack
 
   ActiveDrawable::ActiveDrawable (SDL_Renderer * renderer,
                                   std::string sprite_file, int sprite_length,
-                                  int sprite_start_line, int sprite_frequency) :
+                                  int sprite_start_line, int sprite_frequency,
+                                  t_dim sprite_render_size) :
           DrawableItem (renderer, 500, sprite_file, sprite_length,
-                        sprite_start_line, sprite_frequency),
+                        sprite_start_line, sprite_frequency,
+                        sprite_render_size),
           hit_counter (0), angle (0), att_accel (DEFAULT_ACCEL),
           att_speed (DEFAULT_SPEED), att_jump (DEFAULT_JUMP)
   {
@@ -34,11 +36,32 @@ namespace jumpinjack
   {
   }
 
+  int ActiveDrawable::getWidth(void) const
+  {
+    return render_size.x;
+  }
+
+  int ActiveDrawable::getHeight(void) const
+  {
+    return render_size.y * 2 / 3;
+  }
+
   void ActiveDrawable::convertCoordinates (t_point & p)
   {
     /* convert x,y in surface to the point where it should be drawn */
-    p.x -= sprite_size.x / 2;
-    p.y -= sprite_size.y;
+    p.x -= render_size.x / 2;
+    p.y -= render_size.y;
+  }
+
+  void ActiveDrawable::onDestroy (void)
+  {
+    if (!getStatus(STATUS_DYING))
+    {
+      unsetStatus (STATUS_LISTENING);
+      setStatus (STATUS_DYING);
+      sprite_line = 1;
+      status_count = 0;
+    }
   }
 
   void ActiveDrawable::update (SDL_Point & next_point)
@@ -53,28 +76,30 @@ namespace jumpinjack
     SDL_RendererFlip flip =
         (direction & DIRECTION_RIGHT) ? SDL_FLIP_NONE : SDL_FLIP_HORIZONTAL;
 
-    render (point, sprite_size, &renderQuad, flip, angle);
+    render (point, render_size, &renderQuad, flip, angle);
   }
 
-  int ActiveDrawable::getAccel() const {
-	return att_accel;
+  int ActiveDrawable::getAccel(void) const
+  {
+	  return att_accel;
   }
 
-  int ActiveDrawable::getSpeed() const {
-	return att_speed;
+  int ActiveDrawable::getSpeed(void) const
+  {
+	  return att_speed;
   }
 
-  int ActiveDrawable::getJump() const
+  int ActiveDrawable::getJump(void) const
   {
     return att_jump;
   }
 
-  double ActiveDrawable::getGravityEffect() const
+  double ActiveDrawable::getGravityEffect(void) const
   {
     return att_gravity_effect;
   }
 
-  t_direction ActiveDrawable::getDirection() const {
+  t_direction ActiveDrawable::getDirection(void) const {
 	return direction;
   }
 
@@ -82,7 +107,7 @@ namespace jumpinjack
 	direction = dir;
   }
 
-  void ActiveDrawable::turn ( void )
+  void ActiveDrawable::turn (void)
   {
       setDirection((direction == DIRECTION_RIGHT)?DIRECTION_LEFT:DIRECTION_RIGHT);
   }

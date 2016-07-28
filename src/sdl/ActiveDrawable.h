@@ -30,17 +30,12 @@ namespace jumpinjack
     public:
       ActiveDrawable (SDL_Renderer * renderer, std::string sprite_file,
                       int sprite_length, int sprite_start_line,
-                      int sprite_frequency);
+                      int sprite_frequency,
+                      t_dim sprite_render_size = {0,0});
       virtual ~ActiveDrawable ();
 
-      virtual int getWidth ()
-      {
-        return sprite_size.x;
-      }
-      virtual int getHeight ()
-      {
-        return sprite_size.y * 2 / 3;
-      }
+      virtual int getWidth (void) const;
+      virtual int getHeight (void) const;
 
       void convertCoordinates (t_point & p);
 
@@ -49,19 +44,20 @@ namespace jumpinjack
                                        t_point & delta,
                                        t_point * otherpoint = 0,
                                        t_point * otherdelta = 0) = 0;
+      virtual void onDestroy (void);
 
       virtual void renderFixed (t_point point);
 
       virtual void update (SDL_Point & next_point);
 
-      int getAccel () const;
-      int getSpeed () const;
-      int getJump () const;
-      double getGravityEffect () const;
-      t_direction getDirection () const;
+      int getAccel (void) const;
+      int getSpeed (void) const;
+      int getJump (void) const;
+      double getGravityEffect (void) const;
+      t_direction getDirection (void) const;
       void setDirection (t_direction dir);
-      void turn ( void );
-      int multipleJump( void ) const;
+      void turn (void);
+      int multipleJump (void) const;
 
       int onJump;
       int jumpId;

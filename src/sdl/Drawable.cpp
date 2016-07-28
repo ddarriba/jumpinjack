@@ -15,11 +15,10 @@ namespace jumpinjack
   Drawable::Drawable (SDL_Renderer * renderer, int zIndex, bool cached) :
           renderer (renderer), zIndex (zIndex), cached (cached)
   {
-    mTexture = 0;
-    image_size =
-      { 0,0};
-
-    mSurface = 0;
+    mSurface    = 0;
+    mTexture    = 0;
+    image_size  = {0,0};
+    render_size = {0,0};
   }
 
   Drawable::~Drawable ()
@@ -28,7 +27,7 @@ namespace jumpinjack
     free ();
   }
 
-  void Drawable::free ()
+  void Drawable::free (void)
   {
     //Free texture if it exists
     if (!cached && mTexture)
@@ -90,8 +89,9 @@ namespace jumpinjack
               { mSurface, mTexture};
           }
       }
-    image_size =
-      { mSurface->w, mSurface->h};
+    image_size = { mSurface->w, mSurface->h};
+    render_size = image_size;
+
     return mTexture != NULL;
   }
 
@@ -121,9 +121,8 @@ namespace jumpinjack
           else
           {
               //Get image dimensions
-              image_size = {
-              textSurface->w,
-              textSurface->h};
+              image_size = {textSurface->w, textSurface->h};
+              render_size = image_size;
           }
 
           //Get rid of old surface
@@ -132,6 +131,16 @@ namespace jumpinjack
 
       //Return success
       return mTexture != NULL;
+  }
+
+  int Drawable::getWidth (void) const
+  {
+    return render_size.x;
+  }
+
+  int Drawable::getHeight (void) const
+  {
+    return render_size.y;
   }
 
   void Drawable::setColor (Uint8 red, Uint8 green, Uint8 blue)
@@ -157,8 +166,10 @@ namespace jumpinjack
   {
     //Set rendering space and render to screen
     SDL_Rect renderQuad =
-      { point.x, point.y, size.x ? size.x : image_size.x,
-          size.y ? size.y : image_size.y };
+      { point.x,
+        point.y,
+        size.x ? size.x : render_size.x,
+        size.y ? size.y : render_size.y };
 
     if (clip)
       {
@@ -167,7 +178,12 @@ namespace jumpinjack
       }
 
     //Render to screen
-    SDL_RenderCopyEx (renderer, mTexture, clip, &renderQuad, angle, center,
+    SDL_RenderCopyEx (renderer,
+                      mTexture,
+                      clip,
+                      &renderQuad,
+                      angle,
+                      center,
                       flip);
   }
 

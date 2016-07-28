@@ -18,9 +18,13 @@ namespace jumpinjack
   }
 
   InGameMenu::InGameMenu (SDL_Renderer * renderer) :
-      AbstractMenu(renderer, "data/img/menu-bg.png")
+      AbstractMenu(renderer, GlobalDefs::getResource (
+                             RESOURCE_IMAGE, "menu-bg.png").c_str())
   {
     selected_option = 0;
+
+    window_pos = { (GlobalDefs::window_size.x - 640) / 2, menu_y };
+    window_size = { 600, 400 };
 
     options.reserve (4);
     options.push_back (
@@ -151,8 +155,7 @@ namespace jumpinjack
           state = MENU_STATE_FIXED;
       }
 
-    t_point menu_point = { (GlobalDefs::window_size.x - 640) / 2, menu_y };
-    _render(menu_point);
+    _render();
   }
 
   InGameMenu::~InGameMenu ()

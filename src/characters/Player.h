@@ -32,14 +32,10 @@ namespace jumpinjack
               int sprite_length, int sprite_start_line, int sprite_frequency);
       virtual ~Player ();
 
-      void setState (playerState new_state)
-      {
-        current_state = new_state;
-      }
-      playerState getState () const
-      {
-        return current_state;
-      }
+      void resetState(void);
+
+      void setPlayerState (playerState new_state);
+      playerState getPlayerState (void) const;
 
       virtual void onCreate (void);
       virtual void onDestroy (void);
@@ -56,7 +52,8 @@ namespace jumpinjack
       void jump();
 
     private:
-      playerState current_state;
+      playerState player_state;
+      int base_sprite_frequency;
   };
 
 } /* namespace sdlfw */

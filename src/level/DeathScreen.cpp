@@ -14,11 +14,12 @@ namespace jumpinjack
 
   static void reset_y(int * y)
   {
-    *y = -400;
+    *y = -800;
   }
 
   DeathScreen::DeathScreen (SDL_Renderer * renderer) :
-    AbstractMenu(renderer, "data/img/menu-bg.png")
+    AbstractMenu(renderer, GlobalDefs::getResource (
+                           RESOURCE_IMAGE, "death-bg.png").c_str())
   {
     reset_y(&menu_y);
   }
@@ -26,12 +27,18 @@ namespace jumpinjack
   menu_action DeathScreen::poll ()
   {
     menu_action return_val = MENU_NONE;
+    SDL_Event event;
+
+    t_point gwindow_size = GlobalDefs::window_size;
+    window_pos =
+        { (int)round(0.1 * gwindow_size.x),
+          (int)round(0.1 * gwindow_size.y) };
+    window_size =
+        { (int)round(gwindow_size.x - 0.2*gwindow_size.x),
+          (int)round(gwindow_size.y - 0.2*gwindow_size.y) };
 
     if (state == MENU_STATE_FIXED)
       {
-//        int x, y;
-        SDL_Event event;
-
         while (SDL_PollEvent (&event))
           {
             switch (event.type)
@@ -41,12 +48,6 @@ namespace jumpinjack
                 break;
               }
           }
-//
-//        for (t_option & op : options)
-//          {
-//            op.texture->loadFromRenderedText (op.option_text,
-//                                              color[op.id == selected_option]);
-//          }
       }
     else if (state == MENU_STATE_DONE)
       {
@@ -54,6 +55,9 @@ namespace jumpinjack
         reset_y(&menu_y);
         return_val = MENU_CONTINUE;
       }
+    else
+      while (SDL_PollEvent (&event)); /* purge queue */
+
     return return_val;
   }
 
@@ -62,18 +66,17 @@ namespace jumpinjack
       if (state == MENU_STATE_LOAD)
       {
         menu_y += 40;
-        if (menu_y>= 0)
+        if (menu_y >= window_pos.y)
           state = MENU_STATE_FIXED;
       }
       else if (state == MENU_STATE_UNLOAD)
       {
-        menu_y -= 40;
+        menu_y -= 100;
         if (menu_y <= -400)
           state = MENU_STATE_DONE;
       }
 
-      t_point menu_point = { (GlobalDefs::window_size.x - 640) / 2, menu_y };
-      _render(menu_point);
+      bg->render ({window_pos.x, menu_y}, window_size);
   }
 
   DeathScreen::~DeathScreen ()

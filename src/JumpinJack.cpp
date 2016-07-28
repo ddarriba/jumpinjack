@@ -44,7 +44,7 @@ int main (void)
                     TRIGGER_HOLD);
 
   manager.addPlayer (GlobalDefs::getResource (RESOURCE_IMAGE, "player1.png"),
-                     3, 0, 3);
+                     4, 0, 3);
 
 
 

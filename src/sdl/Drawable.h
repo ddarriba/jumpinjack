@@ -35,14 +35,8 @@ namespace jumpinjack
       bool loadFromFile (std::string path);
       bool loadFromRenderedText( std::string textureText, SDL_Color textColor );
 
-      virtual int getWidth ()
-      {
-        return image_size.x;
-      }
-      virtual int getHeight ()
-      {
-        return image_size.y;
-      }
+      virtual int getWidth (void) const;
+      virtual int getHeight (void) const;
 
       void setColor (Uint8 red, Uint8 green, Uint8 blue);
       void setBlendMode (SDL_BlendMode blending);
@@ -68,12 +62,13 @@ namespace jumpinjack
 
       //Image dimensions
       t_dim image_size;
+      t_dim render_size;
 
       int zIndex;
 
       bool cached;
 
-      void free ();
+      void free (void);
 
     private:
       static std::map<std::string, graphicInfo> cachedSurfaces;

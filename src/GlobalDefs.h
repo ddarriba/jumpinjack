@@ -74,7 +74,8 @@ typedef enum
   STATUS_ALIVE = 1,
   STATUS_LISTENING = 2,
   STATUS_UNTOUCHABLE = 4,
-  STATUS_DYING = 8
+  STATUS_DYING = 8,
+  STATUS_ALL = 15
 } t_status;
 
 typedef enum

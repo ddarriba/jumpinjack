@@ -29,15 +29,16 @@ namespace jumpinjack
     delete bg;
   }
 
-  void AbstractMenu::_render(t_point & point)
+  void AbstractMenu::_render( void ) const
   {
-    bg->render (point, { 640, 400 });
+    bg->render (window_pos, window_size);
 
-    for (t_option & op : options)
+    for (t_option const& op : options)
     {
       op.texture->render (
-        { (point.x + 640 - op.quad.w) / 2, point.y + op.quad.y },
-                            { op.quad.w, op.quad.h });
+        { window_pos.x + (window_size.x - op.quad.w) / 2,
+           window_pos.y + op.quad.y },
+        { op.quad.w, op.quad.h });
     }
   }
 } /* namespace jumpinjack */
