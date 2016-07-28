@@ -19,7 +19,7 @@ namespace jumpinjack
 
   t_direction reverseDirection (t_direction dir);
 
-  static void parse_level_file(int level_id, int n_players, t_level_data & level_data)
+  static void parse_level_file(int level_id, int player_count, t_level_data & level_data)
   {
     stringstream ss;
     string line;
@@ -30,10 +30,10 @@ namespace jumpinjack
     ifstream myfile (filename);
     assert (myfile.is_open ());
 
-    level_data.player_start_point.reserve (n_players);
-    level_data.player_start_delta.reserve (n_players);
+    level_data.player_start_point.reserve (player_count);
+    level_data.player_start_delta.reserve (player_count);
 
-    for (int i = 0; i < n_players; ++i)
+    for (int i = 0; i < player_count; ++i)
     {
       t_point position, delta;
       getline (myfile, line);
@@ -43,7 +43,7 @@ namespace jumpinjack
       level_data.player_start_delta.push_back (delta);
     }
 
-    for (int i = n_players; i < MAX_PLAYERS; i++)
+    for (int i = player_count; i < MAX_PLAYERS; i++)
     {
       /* skip line */
       getline (myfile, line);
@@ -100,6 +100,38 @@ namespace jumpinjack
     myfile.close ();
   }
 
+  void LevelManager::saveLevelData(void)
+  {
+    /* clean */
+    level_data.player_start_point.clear();
+    level_data.player_start_delta.clear();
+    level_data.items.clear();
+
+    for (itemInfo & it : items)
+    {
+      if (it.type == ITEM_PLAYER)
+      {
+        level_data.player_start_point.push_back(it.point);
+        level_data.player_start_delta.push_back(it.delta);
+      }
+      else
+      {
+        //TODO: Temporary
+        level_data.items.push_back(
+          {
+          "data/img/enemies.png",
+          8, /* len   */
+          0, /* start */
+          2, /* speed */
+          it.type,
+          it.point,
+          it.delta
+          }
+        );
+      }
+    }
+  }
+
   void LevelManager::loadLevelData(void)
   {
     paused = false;
@@ -125,11 +157,20 @@ namespace jumpinjack
       level_surface = 0;
     }
 
+    /* load */
+
     items.reserve (MAX_LEVEL_ITEMS);
     int i = 0;
-    for (Player * player : players)
+    for (itemInfo & playerInfo : players)
     {
+      playerInfo.point = playerInfo.next_point =
+        level_data.player_start_point[i];
+      playerInfo.delta = playerInfo.next_delta =
+        level_data.player_start_delta[i];
+      playerInfo.alive = true;
+      Player * player = dynamic_cast<Player *>(playerInfo.item);
       player->resetState();
+
       items.push_back (
             { player, ITEM_PLAYER,
               level_data.player_start_point[i],
@@ -137,7 +178,7 @@ namespace jumpinjack
               level_data.player_start_point[i],
               level_data.player_start_delta[i],
               true });
-      checkpoint = level_data.player_start_point[i];
+
       ++i;
     }
     bg_layers.reserve (level_data.parallax_layers.size ());
@@ -167,17 +208,30 @@ namespace jumpinjack
           assert (0);
       }
     }
+
+    sound_manager->playMusic(sound_bgmusic);
   }
 
   LevelManager::LevelManager (SDL_Renderer * renderer, int level_id,
-                              vector<Player *> & players) :
-      renderer (renderer), level_id (level_id), num_players (players.size ()), players(players)
+                              vector<Player *> & v_players) :
+      renderer (renderer), level_id (level_id), player_count (v_players.size ())
   {
     level_surface = 0;
 
-    parse_level_file(level_id, players.size(), level_data);
+    parse_level_file(level_id, player_count, level_data);
 
-    loadLevelData();
+    /* add players */
+    players.reserve(player_count);
+    for (Player * player : v_players)
+    {
+      players.push_back(
+       {
+          player, ITEM_PLAYER,
+          {0,0}, {0,0},
+          {0,0}, {0,0}
+        }
+      );
+    }
 
     level_width = 4000;
 
@@ -188,8 +242,12 @@ namespace jumpinjack
         GlobalDefs::getResource (RESOURCE_SOUND, "shoot001.wav"));
     sound_bgmusic = sound_manager->loadMusic(
         GlobalDefs::getResource (RESOURCE_SOUND, "music001.ogg"));
+    sound_deathmusic = sound_manager->loadMusic(
+        GlobalDefs::getResource (RESOURCE_SOUND, "music002.ogg"));
+    sound_explode = sound_manager->loadFromFile(
+        GlobalDefs::getResource (RESOURCE_SOUND, "explode001.ogg"));
 
-    sound_manager->playMusic(sound_bgmusic);
+    loadLevelData();
 
     death_screen = new DeathScreen(renderer);
   }
@@ -199,8 +257,10 @@ namespace jumpinjack
     for (itemInfo & it : items)
       if (it.type != ITEM_PLAYER)
         delete it.item;
+
     for (BackgroundDrawable * bg : bg_layers)
       delete bg;
+
     delete level_surface;
     delete sound_manager;
   }
@@ -210,7 +270,7 @@ namespace jumpinjack
     if (!alive)
       return;
 
-    assert (player_id < num_players);
+    assert (player_id < player_count);
     itemInfo & player_info = items[player_id];
     Player * player = (Player *) player_info.item;
 
@@ -489,6 +549,7 @@ namespace jumpinjack
             it.next_point.x += inc;
             break;
           case MOVE_DEATH:
+            it.point = it.next_point;
             it.alive = false;
             goloop = false;
             break;
@@ -496,7 +557,10 @@ namespace jumpinjack
             if (collide(character, 0,
                     DIRECTION_HORIZONTAL, ITEM_PASSIVE,
                     it.next_point, it.next_delta) == COLLISION_DIE)
+            {
+              it.point = it.next_point;
               it.alive = false;
+            }
             goloop = false;
             break;
           }
@@ -522,9 +586,11 @@ namespace jumpinjack
             character->jumpId = max (1, character->jumpId);
             break;
           case MOVE_DEATH:
+            it.point = it.next_point;
             it.alive = false;
             break;
           case MOVE_NOT:
+            it.point = it.next_point;
             character->jumpId = 0;
             break;
         }
@@ -556,6 +622,7 @@ namespace jumpinjack
                 break;
               }
               case MOVE_DEATH:
+                it.point = it.next_point;
                 it.alive = false;
                 goloop = false;
                 break;
@@ -577,7 +644,10 @@ namespace jumpinjack
                         ITEM_PASSIVE,
                         it.next_point,
                         it.next_delta) == COLLISION_DIE)
+                {
+                  it.point = it.next_point;
                   it.alive = false;
+                }
                 goloop = false;
                 break;
               }
@@ -589,7 +659,11 @@ namespace jumpinjack
       {
         it.item->onDestroy();
         if (it.type == ITEM_PLAYER)
+        {
+          sound_manager->playSound(sound_explode);
+          sound_manager->playMusic(sound_deathmusic);
           return false;
+        }
       }
     }
     return true;
@@ -690,6 +764,8 @@ namespace jumpinjack
 
     if (!player_alive)
     {
+      sound_manager->playSound(sound_explode);
+      sound_manager->playMusic(sound_deathmusic);
       assert (!paused);
       alive = false;
     }
@@ -708,6 +784,7 @@ namespace jumpinjack
       bg->renderFixed (
         { xOffset, 0 });
     }
+
     for (itemInfo & it : items)
     {
       int effectiveX = it.point.x - xOffset;
@@ -720,6 +797,19 @@ namespace jumpinjack
         it.item->renderFixed (render_point);
       }
     }
+
+    // for (itemInfo & it : players)
+    // {
+    //   int effectiveX = it.point.x - xOffset;
+    //
+    //   if (effectiveX > -it.item->getWidth ()
+    //       && effectiveX < (GlobalDefs::window_size.x + it.item->getWidth ()))
+    //   {
+    //     t_point render_point =
+    //       { effectiveX, it.point.y };
+    //     it.item->renderFixed (render_point);
+    //   }
+    // }
 
     if (!alive)
     {

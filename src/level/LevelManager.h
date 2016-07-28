@@ -78,6 +78,7 @@ namespace jumpinjack
     private:
       bool updatePosition (itemInfo & it);
       t_move canMoveTo (t_point p, ActiveDrawable * character, t_direction dir);
+      void saveLevelData(void);
       void loadLevelData(void);
       t_collision collide(ActiveDrawable * character,
                           Drawable * item,
@@ -94,18 +95,19 @@ namespace jumpinjack
 
       int level_id;
       int level_width;
-      int num_players;
+      int player_count;
       std::vector<itemInfo> items;
-      std::vector<Player *> & players;
+      std::vector<itemInfo> players;
       std::vector<BackgroundDrawable *> bg_layers;
       Surface * level_surface;
 
-      t_point checkpoint;
       t_level_data level_data;
 
       unsigned long sound_jump;
       unsigned long sound_shoot;
       unsigned long sound_bgmusic;
+      unsigned long sound_deathmusic;
+      unsigned long sound_explode;
 
       DeathScreen * death_screen;
 

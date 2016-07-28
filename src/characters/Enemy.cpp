@@ -76,7 +76,10 @@ namespace jumpinjack
     if (getStatus (STATUS_DYING))
     {
       status_count++;
-      if (status_count >= 10)
+      render_size.x += 10;
+      render_size.y += 10;
+      sprite_frequency = 1;
+      if (status_count >= 5)
       {
         unsetStatus (STATUS_ALIVE);
       }
