@@ -33,7 +33,7 @@ namespace jumpinjack
       std::string option_text;
       menu_action action;
       Drawable * texture;
-      SDL_Rect quad;
+      t_rect quad;
     } t_option;
 
   class AbstractMenu : public Drawable

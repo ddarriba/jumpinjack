@@ -14,6 +14,8 @@ namespace jumpinjack
   Checkpoint::Checkpoint (SDL_Renderer * renderer, std::string sprite_file) :
           ActiveDrawable (renderer, sprite_file, 1, 0, 1, {64,64})
   {
+    status_count = 0;
+    state = CKP_INIT;
     setDirection (DIRECTION_LEFT);
     taken = false;
   }
@@ -40,14 +42,25 @@ namespace jumpinjack
     if (!taken && type == ITEM_PLAYER)
     {
       taken = true;
+      status_count = 0;
       sprite_line = 1;
+      state = CKP_HIT;
       return COLLISION_CHECKPOINT;
     }
     return (t_collision) collision_result;
   }
 
-  void Checkpoint::update (SDL_Point & next_point)
+  void Checkpoint::update (t_point & next_point)
   {
+    if (state == CKP_HIT)
+    {
+      status_count++;
+      if (status_count < 7)
+        next_point.y -= 6;
+      angle += 10;
+      if (status_count >= 36)
+        state = CKP_END;
+    }
     ActiveDrawable::update(next_point);
   }
 

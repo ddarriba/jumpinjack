@@ -112,29 +112,32 @@ namespace jumpinjack
 
     for (itemInfo & it : items)
     {
-      if (it.type == ITEM_PLAYER)
+      switch (it.type)
       {
-        level_data.player_start_point.push_back(it.point);
-        level_data.player_start_delta.push_back(it.delta);
-      }
-      else
-      {
-        //TODO: Temporary
-        level_data.items.push_back(
-          {
-          "data/img/enemies.png",
-          8, /* len   */
-          0, /* start */
-          2, /* speed */
-          it.type,
-          it.point,
-          it.delta
-          }
-        );
+        case ITEM_PLAYER:
+        {
+          level_data.player_start_point.push_back(it.point);
+          level_data.player_start_delta.push_back(it.delta);
+          break;
+        }
+        default:
+        {
+          level_data.items.push_back(
+            {
+            it.item->getFilePath(),
+            it.item->getSpriteLength(),
+            it.item->getSpriteStartLine(),
+            it.item->getSpriteFrequency(),
+            it.type,
+            it.point,
+            it.delta
+            }
+          );
+          break;
+        }
       }
     }
   }
-
   void LevelManager::loadLevelData(void)
   {
     paused = false;
@@ -217,6 +220,7 @@ namespace jumpinjack
                 });
           break;
         default:
+          cerr << "UNKNOWN TYPE: " << item_desc.type << endl;
           assert (0);
       }
     }

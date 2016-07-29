@@ -89,8 +89,10 @@ namespace jumpinjack
               { mSurface, mTexture};
           }
       }
+
     image_size = { mSurface->w, mSurface->h};
     render_size = image_size;
+    file_path = path;
 
     return mTexture != NULL;
   }
@@ -143,6 +145,11 @@ namespace jumpinjack
     return render_size.y;
   }
 
+  string Drawable::getFilePath(void) const
+  {
+    return file_path;
+  }
+
   void Drawable::setColor (Uint8 red, Uint8 green, Uint8 blue)
   {
     //Modulate texture rgb
@@ -161,11 +168,11 @@ namespace jumpinjack
     SDL_SetTextureAlphaMod (mTexture, alpha);
   }
 
-  void Drawable::render (t_point point, t_dim size, SDL_Rect * clip,
+  void Drawable::render (t_point point, t_dim size, t_rect * clip,
                          SDL_RendererFlip flip, double angle, t_point * center)
   {
     //Set rendering space and render to screen
-    SDL_Rect renderQuad =
+    t_rect renderQuad =
       { point.x,
         point.y,
         size.x ? size.x : render_size.x,

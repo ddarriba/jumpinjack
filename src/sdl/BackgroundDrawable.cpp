@@ -38,7 +38,7 @@ namespace jumpinjack
         if ((point.x / parallax_level % image_size.x) == 0)
           counter = 0;
       }
-    SDL_Rect renderQuad =
+    t_rect renderQuad =
       { -(point.x / parallax_level % image_size.x), GlobalDefs::window_size.y
           - image_size.y, image_size.x, image_size.y };
 

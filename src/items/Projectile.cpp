@@ -91,7 +91,7 @@ namespace jumpinjack
     return (t_collision) collision_result;
   }
 
-  void Projectile::update (SDL_Point & next_point)
+  void Projectile::update (t_point & next_point)
   {
     if (getStatus (STATUS_DYING))
       {

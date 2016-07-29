@@ -71,7 +71,7 @@ namespace jumpinjack
     return COLLISION_IGNORE;
   }
 
-  void Enemy::update (SDL_Point & next_point)
+  void Enemy::update (t_point & next_point)
   {
     if (getStatus (STATUS_DYING))
     {

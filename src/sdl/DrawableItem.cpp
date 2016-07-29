@@ -45,9 +45,24 @@ namespace jumpinjack
     status = (t_status) (status & ~s);
   }
 
-  bool DrawableItem::getStatus (t_status s)
+  bool DrawableItem::getStatus (t_status s) const
   {
     return status & s;
+  }
+
+  int DrawableItem::getSpriteLength (void) const
+  {
+    return sprite_length;
+  }
+
+  int DrawableItem::getSpriteStartLine (void) const
+  {
+    return sprite_start_line;
+  }
+
+  int DrawableItem::getSpriteFrequency (void) const
+  {
+    return sprite_frequency;
   }
 
   void DrawableItem::resetSpriteIndex ( void )
@@ -55,7 +70,7 @@ namespace jumpinjack
     sprite_index = 0;
   }
 
-  SDL_Rect DrawableItem::updateSprite ()
+  t_rect DrawableItem::updateSprite ()
   {
     sprite_freq_divisor = (sprite_freq_divisor + 1) % sprite_frequency;
     if (!sprite_freq_divisor)
@@ -65,7 +80,7 @@ namespace jumpinjack
       { sprite_index * sprite_size.x,
         sprite_line * sprite_size.y };
 
-    SDL_Rect renderQuad =
+    t_rect renderQuad =
       { sprite_offset.x, sprite_offset.y,
           sprite_size.x, sprite_size.y };
 

@@ -250,7 +250,7 @@ namespace jumpinjack
       {
         { 0, 0, 0 },
         { 255, 0, 0 } };
-    SDL_Rect pos[NUMMENU];
+    t_rect pos[NUMMENU];
         int yMenuOffset = 100;
 
     for (int i = 0; i < NUMMENU; i++)
@@ -305,7 +305,7 @@ namespace jumpinjack
               case SDL_KEYDOWN:
                 switch (event.key.keysym.sym)
                 {
-                  case SDLK_y:
+                  case SDLK_RETURN:
                     return_val = returnval_array[selected];
                     in_loop = false;
                     break;
@@ -316,6 +316,9 @@ namespace jumpinjack
                   case SDLK_DOWN:
                     selected += 1;
                     selected %= NUMMENU;
+                    break;
+                  case SDLK_ESCAPE:
+                    return_val = MENU_OPTION_EXIT;
                     break;
                 }
 

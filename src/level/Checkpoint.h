@@ -26,10 +26,11 @@ namespace jumpinjack
                                        t_point & delta,
                                        t_point * otherpoint = 0,
                                        t_point * otherdelta = 0);
-      virtual void update (SDL_Point & next_point);
+      virtual void update (t_point & next_point);
 
     protected:
-      int rotation_speed;       /* rotation speed */
+      enum ckp_state{ CKP_INIT, CKP_HIT, CKP_END};
+      ckp_state state;       /* rotation speed */
       bool taken;
   };
 

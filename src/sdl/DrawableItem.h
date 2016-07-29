@@ -24,16 +24,20 @@ namespace jumpinjack
 
       void setStatus (t_status s);
       void unsetStatus (t_status s);
-      bool getStatus (t_status s);
+      bool getStatus (t_status s) const;
 
-      void resetSpriteIndex ( void );
+      int getSpriteLength (void) const;
+      int getSpriteStartLine (void) const;
+      int getSpriteFrequency (void) const;
+
+      void resetSpriteIndex (void);
 
       virtual void onCreate (void) = 0;
       virtual void onDestroy (void) = 0;
-      virtual void update (SDL_Point & next_point) = 0;
+      virtual void update (t_point & next_point) = 0;
 
     protected:
-      SDL_Rect updateSprite(void);
+      t_rect updateSprite(void);
 
       t_dim sprite_size;
 

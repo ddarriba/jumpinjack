@@ -28,7 +28,7 @@ namespace jumpinjack
                                        t_point & delta,
                                        t_point * otherpoint = 0,
                                        t_point * otherdelta = 0);
-      virtual void update (SDL_Point & next_point);
+      virtual void update (t_point & next_point);
 
     protected:
       unsigned int start_ticks; /* starting time */

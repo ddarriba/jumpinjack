@@ -34,9 +34,6 @@ namespace jumpinjack
                       t_dim sprite_render_size = {0,0});
       virtual ~ActiveDrawable ();
 
-      virtual int getWidth (void) const;
-      virtual int getHeight (void) const;
-
       void convertCoordinates (t_point & p);
 
       virtual t_collision onCollision (Drawable * item, t_direction dir,
@@ -48,7 +45,7 @@ namespace jumpinjack
 
       virtual void renderFixed (t_point point);
 
-      virtual void update (SDL_Point & next_point);
+      virtual void update (t_point & next_point);
 
       int getAccel (void) const;
       int getSpeed (void) const;
@@ -70,7 +67,7 @@ namespace jumpinjack
                                             t_point * otherpoint = 0,
                                             t_point * otherdelta = 0);
 
-      SDL_Rect renderQuad;
+      t_rect renderQuad;
 
       t_direction direction;
 

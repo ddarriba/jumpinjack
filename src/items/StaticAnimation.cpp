@@ -35,7 +35,7 @@ namespace jumpinjack
 
   void StaticAnimation::renderFixed (t_point point)
   {
-//    SDL_Rect renderQuad = updateSprite ();
+//    t_rect renderQuad = updateSprite ();
 
     convertCoordinates (point);
 
@@ -43,7 +43,7 @@ namespace jumpinjack
       render (point, sprite_size, &renderQuad, SDL_FLIP_NONE);
   }
 
-  void StaticAnimation::update (SDL_Point & next_point)
+  void StaticAnimation::update (t_point & next_point)
   {
     renderQuad = updateSprite ();
     if (lifespan == LIFESPAN_ONE_LOOP)

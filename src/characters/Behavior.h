@@ -17,7 +17,7 @@ class Behavior
 {
 public:
   virtual ~Behavior(){}
-  virtual bool update(SDL_Point & next_point,
+  virtual bool update(t_point & next_point,
                       t_direction & direction) = 0;
 };
 

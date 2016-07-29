@@ -36,16 +36,6 @@ namespace jumpinjack
   {
   }
 
-  int ActiveDrawable::getWidth(void) const
-  {
-    return render_size.x;
-  }
-
-  int ActiveDrawable::getHeight(void) const
-  {
-    return render_size.y * 2 / 3;
-  }
-
   void ActiveDrawable::convertCoordinates (t_point & p)
   {
     /* convert x,y in surface to the point where it should be drawn */
@@ -64,7 +54,7 @@ namespace jumpinjack
     }
   }
 
-  void ActiveDrawable::update (SDL_Point & next_point)
+  void ActiveDrawable::update (t_point & next_point)
     {
       renderQuad = updateSprite();
     }

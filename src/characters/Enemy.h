@@ -31,7 +31,7 @@ namespace jumpinjack
                                        t_point & delta,
                                        t_point * otherpoint = 0,
                                        t_point * otherdelta = 0);
-      virtual void update (SDL_Point & next_point);
+      virtual void update (t_point & next_point);
       virtual t_collision getCollisionEffect (t_itemtype type,
                                               t_direction dir) const;
   private:

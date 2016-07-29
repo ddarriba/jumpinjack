@@ -23,7 +23,7 @@ namespace jumpinjack
 
   }
 
-  bool BehaviorWalker::update(SDL_Point & next_point,
+  bool BehaviorWalker::update(t_point & next_point,
                               t_direction & direction)
   {
     if (direction == DIRECTION_RIGHT)

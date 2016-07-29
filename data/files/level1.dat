@@ -6,7 +6,7 @@ bg3.jpg 10 1  0
 bg2.png  2 1 10
 bg.png   1 0  0
 fg.png
-8
+9
 enemies.png 8 0 2 ITEM_ENEMY {500,330} {0,0}
 enemies.png 8 0 2 ITEM_ENEMY {800,130} {0,0}
 enemies.png 8 0 2 ITEM_ENEMY {1000,330} {0,0}
@@ -14,4 +14,5 @@ enemies.png 8 0 2 ITEM_ENEMY {1200,300} {0,0}
 enemies.png 8 0 2 ITEM_ENEMY {2700,300} {0,0}
 enemies.png 8 0 2 ITEM_ENEMY {2900,300} {0,0}
 enemies.png 8 0 2 ITEM_ENEMY {3500,300} {0,0}
+checkpoint.png 1 0 1 ITEM_CHECK {170,360} {0,0}
 checkpoint.png 1 0 1 ITEM_CHECK {1900,360} {0,0}

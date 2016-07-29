@@ -142,7 +142,7 @@ namespace jumpinjack
     return COLLISION_IGNORE;
   }
 
-  void Player::update (SDL_Point & next_point)
+  void Player::update (t_point & next_point)
   {
     if (getStatus (STATUS_DYING))
     {

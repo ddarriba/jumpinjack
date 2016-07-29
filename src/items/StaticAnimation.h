@@ -23,7 +23,7 @@ namespace jumpinjack
                        int sprite_frequency, int lifespan, int zindex);
       virtual ~StaticAnimation ();
 
-      virtual void update (SDL_Point & next_point);
+      virtual void update (t_point & next_point);
       virtual void renderFixed (t_point point);
 
     private:
@@ -32,7 +32,7 @@ namespace jumpinjack
       unsigned int start_time;
       unsigned int lifespan;    /* millis */
 
-      SDL_Rect renderQuad;
+      t_rect renderQuad;
   };
 
 } /* namespace jumpinjack */

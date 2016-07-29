@@ -48,7 +48,7 @@ namespace jumpinjack
     {
       collision_result = COLLISION_IGNORE;
     }
-    else
+    else if (type != ITEM_CHECK)
     {
       unsetStatus (STATUS_ALIVE);
       collision_result = COLLISION_DIE;
